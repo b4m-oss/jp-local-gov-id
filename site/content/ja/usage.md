@@ -5,11 +5,9 @@ description: クライアントの初期化と基本操作
 
 # 使い方
 
-`createLocalGovClient` は async です。`data` または `url`（**index.json** の版付き URL）のいずれかが必須です。
+まずは、一番シンプルな方法を例示します。
 
-初期化ではインデックスと都道府県のみを読み込み、市区町村は県単位で遅延ロードします。全国対象の文字列検索では、未ロードの県別 JSON を同時 6 件で取得します。
-
-## 最小の例
+## 一番簡単な例
 
 ```ts
 import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
@@ -28,36 +26,155 @@ await client.searchByText("ちよだ", { prefecture: "13", target: "cities" }); 
 await client.getLocalGovCodeByName("千代田区"); // "131016"
 ```
 
-## その場で試す
+このように、アプリケーションとデータをそれぞれ npm パッケージから呼び出し、読み込めば使用できます。
 
-::code-lookup-demo
-::
+## 巨大なデータソースへの対処
 
-## 版付き URL から取得
+一方で「**全国のデータをnpmから配信すると、巨大なのでは？**」という疑問もあるでしょう。
+
+はい、この質問に対しては「**YES**」です。v0.1.0のデータソースは、400KBを超えています。
+
+従って、パッケージマネージャーで、アプリ（`@b4moss/jp-local-gov-id`）と、データソース（`@b4moss/jp-local-gov-id-data`）を別々にビルドする方法をお勧めします。
+
+### Viteの場合
+
+```shell
+npm i -D vite-plugin-static-copy
+```
 
 ```ts
-const client = await createLocalGovClient({
-  url: "https://example.com/jp-local-gov-id-data/0.2.0/index.json",
+// vite.config.ts
+import { defineConfig } from "vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+export default defineConfig({
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          // dataset.js はコピーしない（バンドル肥大化の元）
+          src: [
+            "node_modules/@b4moss/jp-local-gov-id-data/index.json",
+            "node_modules/@b4moss/jp-local-gov-id-data/prefectures.json",
+            "node_modules/@b4moss/jp-local-gov-id-data/prefectures",
+          ],
+          dest: "jp-local-gov-id-data",
+        },
+      ],
+    }),
+  ],
+  // 念のため optimize 対象から外す（誤って import しても警告しやすくする）
+  optimizeDeps: {
+    exclude: ["@b4moss/jp-local-gov-id-data"],
+  },
 });
 ```
 
+```ts
+// app.ts 等
+const client = await createLocalGovClient({
+  url: "/jp-local-gov-id-data/index.json",
+});
+```
+
+### Webpackの場合
+
+```shell
+npm i -D copy-webpack-plugin
+```
+
+```js
+// webpack.config.js
+const path = require("path");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+
+module.exports = {
+  entry: "./src/main.js",
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "app.js",
+    clean: true,
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: "node_modules/@b4moss/jp-local-gov-id-data/index.json",
+          to: "jp-local-gov-id-data/index.json",
+        },
+        {
+          from: "node_modules/@b4moss/jp-local-gov-id-data/prefectures.json",
+          to: "jp-local-gov-id-data/prefectures.json",
+        },
+        {
+          from: "node_modules/@b4moss/jp-local-gov-id-data/prefectures",
+          to: "jp-local-gov-id-data/prefectures",
+        },
+      ],
+    }),
+  ],
+  // 誤って data パッケージを bundle しない
+  externals: {
+    // 使う場合のみ。通常は単に import しないのが確実
+  },
+};
+```
+
+```js
+// app.js 等
+const client = await createLocalGovClient({
+  url: "/jp-local-gov-id-data/index.json",
+});
+```
+
+### データソースを外部から読み込む
+
+そもそも、データソースをセルフホストしたくない、という場合もあるでしょう。
+
+その場合は、データソースを外部から読み込むことができます。
+
+インストール時に、アプリだけインストールするようにします。データソースはインストールしません。
+
+```shell
+npm install @b4moss/jp-local-gov-id
+
+# もし既にデータソースをインストールしてしまっていたら、アンインストール
+# npm uninstall @b4moss/jp-local-gov-id-data
+```
+
+その上で、クライアントを呼び出すときに、`url`オプションを指定してください。
+
+```ts
+const client = await createLocalGovClient({
+  url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+});
+```
+
+ここでは、jsDelivr の URL を指定していますが、セルフホストのデータソースを配信し、そこから読み取っても構いません。
+
+その場合、URLにはversionを指定することをお勧めします。アプリにはキャッシュ機能があるため、データソースが更新された場合、URLが一意でないと、古いキャッシュが配信される可能性があります。
+
 - `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
-- 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します
+- 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します（キャッシュの巨大化を避けるため）
 - localStorage が無い環境（Node 等）ではキャッシュをスキップします
 - 文字列検索はひらがな／全角カナを半角カナへ正規化します（`matchField` 既定: `"both"`）
 - スキーマ不一致・不正 JSON は `LocalGovSchemaError`、ネットワーク / HTTP エラーは通常の fetch エラーです
 - クエリで見つからない・同名衝突の場合は `null` / `[]` を返します（throw しません）
 
+パッケージマネージャーなしで HTML から読み込む方法は [インストール](/ja/installation) を参照してください。
+
 ## コード形式
 
-| 対象 | 形式 | 入力時の許容 |
-|------|------|--------------|
-| 都道府県 | 半角数字 2 桁 | 0 埋めの有無どちらも可（`"1"` / `"01"`） |
-| 市区町村 | チェックデジット込みの 6 桁 | 6 桁を正式とする |
+以下のコードに対応しています
 
-## データ構成
+- 都道府県コード
+  - 2桁の半角数字
+  - 1桁の場合、1桁でもゼロ埋め2桁でも同じ挙動
+    - `01`と`1`は同じ挙動となる
+- 地方公共団体コード
+  - チェックデジット込みの6桁
+  - チェックデジット欠損時はエラーです
 
-全市区町村をまとめた単一 JSON は配布しません。
+## データソースの構成
 
 | ファイル | 内容 |
 |----------|------|

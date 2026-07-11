@@ -7,9 +7,14 @@
     "api": "API",
     "examples": "サンプル",
     "playground": "Playground",
+    "contribute": "開発に参加する",
     "language": "言語",
     "menu": "メニュー",
-    "github": "GitHub"
+    "github": "GitHub",
+    "prev": "前へ",
+    "next": "次へ",
+    "pager": "ページナビゲーション",
+    "versions": "パッケージバージョン"
   },
   "theme": {
     "label": "テーマ",

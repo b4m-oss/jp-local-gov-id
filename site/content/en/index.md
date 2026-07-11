@@ -30,3 +30,4 @@ await client.getByCode("131016"); // Chiyoda
 - [API](/en/api) — public methods
 - [Examples](/en/examples) — usage examples
 - [Playground](/en/playground) — try it in the browser
+- [Contribute](/en/contribute) — how to contribute

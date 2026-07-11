@@ -7,9 +7,14 @@
     "api": "API",
     "examples": "Examples",
     "playground": "Playground",
+    "contribute": "Contribute",
     "language": "Language",
     "menu": "Menu",
-    "github": "GitHub"
+    "github": "GitHub",
+    "prev": "Previous",
+    "next": "Next",
+    "pager": "Page navigation",
+    "versions": "Package versions"
   },
   "theme": {
     "label": "Theme",

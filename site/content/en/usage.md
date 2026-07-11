@@ -28,11 +28,6 @@ await client.searchByText("ちよだ", { prefecture: "13", target: "cities" }); 
 await client.getLocalGovCodeByName("千代田区"); // "131016"
 ```
 
-## Try it here
-
-::code-lookup-demo
-::
-
 ## Fetch from a versioned URL
 
 ```ts

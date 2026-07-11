@@ -2,8 +2,11 @@
 const { t, locale, locales, setLocale } = useI18n();
 const localePath = useLocalePath();
 const { open, toggle } = useSidebar();
+const config = useRuntimeConfig();
 
 const githubUrl = "https://github.com/b4m-oss/jp-local-gov-id";
+const appVersion = computed(() => String(config.public.appVersion ?? ""));
+const dataVersion = computed(() => String(config.public.dataVersion ?? ""));
 
 const selected = computed({
   get: () => locale.value,
@@ -25,9 +28,24 @@ const selected = computed({
       >
         <span class="menu-icon" aria-hidden="true" />
       </button>
-      <NuxtLink :to="localePath('/')" class="brand">
-        jp-local-gov-id
-      </NuxtLink>
+      <div class="masthead">
+        <NuxtLink :to="localePath('/')" class="brand">
+          jp-local-gov-id
+        </NuxtLink>
+        <p
+          v-if="appVersion || dataVersion"
+          class="versions"
+          :aria-label="t('nav.versions')"
+        >
+          <span v-if="appVersion">app-{{ appVersion }}</span>
+          <span
+            v-if="appVersion && dataVersion"
+            class="versions-sep"
+            aria-hidden="true"
+          >·</span>
+          <span v-if="dataVersion">data-{{ dataVersion }}</span>
+        </p>
+      </div>
       <div class="header-actions">
         <ColorModeToggle />
         <label class="lang">
@@ -130,23 +148,51 @@ const selected = computed({
   top: 5px;
 }
 
+.masthead {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-right: auto;
+  min-width: 0;
+}
+
 .brand {
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--color-ink);
   text-decoration: none;
   white-space: nowrap;
-  margin-right: auto;
+  line-height: 1.2;
 }
 
 .brand:hover {
   color: var(--color-accent);
 }
 
+.versions {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--color-muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.versions-sep {
+  margin: 0 0.3em;
+  opacity: 0.7;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  flex-shrink: 0;
 }
 
 .lang select {
@@ -193,6 +239,12 @@ const selected = computed({
 
   .header-inner {
     padding: 0 1.25rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .versions {
+    font-size: 0.6rem;
   }
 }
 </style>

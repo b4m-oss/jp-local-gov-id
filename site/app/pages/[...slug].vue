@@ -46,7 +46,10 @@ if (!page.value) {
 </script>
 
 <template>
-  <article class="prose">
-    <ContentRenderer v-if="page" :value="page" />
-  </article>
+  <div>
+    <article class="prose">
+      <ContentRenderer v-if="page" :value="page" />
+    </article>
+    <DocsPager />
+  </div>
 </template>

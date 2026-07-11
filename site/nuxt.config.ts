@@ -1,5 +1,20 @@
-import { copyFileSync } from "node:fs";
-import { join } from "node:path";
+import { copyFileSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+function readPackageVersion(relativePath: string) {
+  const pkg = JSON.parse(
+    readFileSync(join(rootDir, relativePath), "utf8"),
+  ) as { version: string };
+  return pkg.version;
+}
+
+const appVersion = readPackageVersion("packages/jp-local-gov-id/package.json");
+const dataVersion = readPackageVersion(
+  "packages/jp-local-gov-id-data/package.json",
+);
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -7,6 +22,12 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: "2024-04-03",
   css: ["~/assets/css/main.css"],
+  runtimeConfig: {
+    public: {
+      appVersion,
+      dataVersion,
+    },
+  },
   colorMode: {
     preference: "system",
     fallback: "light",
@@ -80,6 +101,8 @@ export default defineNuxtConfig({
         "/en/usage",
         "/ja/examples",
         "/en/examples",
+        "/ja/contribute",
+        "/en/contribute",
       ],
     },
   },

@@ -5,7 +5,16 @@ description: jp-local-gov-id の概要と次のステップ
 
 # はじめに
 
-`@b4moss/jp-local-gov-id` は、日本の全国地方公共団体コードを扱う JavaScript API です。データは `@b4moss/jp-local-gov-id-data` として分割 JSON で提供され、初期化時はインデックスと都道府県のみを読み込み、市区町村は県単位で遅延ロードします。
+`jp-local-gov-id`は、日本の全国地方公共団体コードをJavaScriptから扱うためのnpmパッケージです。
+
+パッケージは2種類に分かれており
+
+- `@b4moss/jp-local-gov-id`: アプリケーション
+- `@b4moss/jp-local-gov-id-data`: 地方自治体データ
+
+となっています。
+
+詳しくは[使い方](./usage.md)を参照してください。
 
 ## 次のステップ
 

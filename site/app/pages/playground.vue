@@ -182,6 +182,7 @@ async function runSearch() {
         </template>
       </section>
     </template>
+    <DocsPager />
   </div>
 </template>
 
