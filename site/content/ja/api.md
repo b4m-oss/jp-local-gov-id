@@ -34,19 +34,38 @@ description: LocalGovClient の公開メソッド
 | `listPrefectures()` | `LocalGov[]` | 全都道府県 |
 | `getPrefectureByCode(code)` | `LocalGov \| null` | 都道府県コードで取得 |
 | `getPrefectureCodeByName(name)` | `string \| null` | 正式名称から都道府県コード |
-| `listMunicipalitiesByPrefecture(pref)` | `Promise<LocalGov[]>` | 県内の市区町村（遅延ロード） |
+| `listMunicipalitiesByPrefecture(pref, options?)` | `Promise<LocalGov[]>` | 県内の市区町村（遅延ロード） |
 | `getMunicipalityByCode(code)` | `Promise<LocalGov \| null>` | 市区町村 6 桁で取得 |
 | `getByCode(code)` | `Promise<LocalGov \| null>` | 2 桁 / 6 桁を自動判定 |
 | `searchByText(text, options?)` | `Promise<LocalGov[]>` | 部分一致検索 |
 | `getLocalGovCodeByName(name, options?)` | `Promise<string \| null>` | 正式名称からコード |
 
-### `searchByText` の options
+### `designatedCity` オプション
+
+政令指定都市の市本体 / 行政区の出し分けです。既定は `"both"`。東京特別区（`千代田区` など）は対象外です。
+
+| 値 | 意味 |
+|----|------|
+| `"both"` | 市本体と区の両方（既定） |
+| `"city"` | 市本体のみ（行政区を除外） |
+| `"ward"` | 区のみ（市本体を除外） |
+
+適用 API: `listMunicipalitiesByPrefecture` / `searchByText` / `getLocalGovCodeByName`
+
+### `listMunicipalitiesByPrefecture` の options
+
+| キー | 型 | 既定 | 説明 |
+|------|-----|------|------|
+| `designatedCity` | `'both' \| 'city' \| 'ward'` | `'both'` | 政令指定都市の市/区フィルタ |
+
+### `searchByText` / `getLocalGovCodeByName` の options
 
 | キー | 型 | 既定 | 説明 |
 |------|-----|------|------|
 | `prefecture` | `string` | — | 都道府県で絞り込み |
 | `target` | `'all' \| 'prefectures' \| 'cities'` | `'all'` | 検索対象 |
 | `matchField` | `'name' \| 'nameKana' \| 'both'` | `'both'` | 照合フィールド |
+| `designatedCity` | `'both' \| 'city' \| 'ward'` | `'both'` | 政令指定都市の市/区フィルタ |
 
 文字列検索はひらがな／全角カナを半角カナへ正規化します。
 
