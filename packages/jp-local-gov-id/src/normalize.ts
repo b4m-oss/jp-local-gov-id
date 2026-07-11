@@ -5,6 +5,26 @@ export function normalizePrefectureCode(input: string): string | null {
   return digits.padStart(2, "0");
 }
 
+/**
+ * 全国地方公共団体コードの検査数字を検証する（先頭 5 桁 + 検査数字 1 桁）。
+ * 重み 6,5,4,3,2 → 和を 11 で割った余り r について (11 - r) % 10。
+ */
+export function hasValidCheckDigit(code6: string): boolean {
+  if (!/^\d{6}$/.test(code6)) return false;
+  const weights = [6, 5, 4, 3, 2] as const;
+  let sum = 0;
+  for (let i = 0; i < 5; i++) {
+    sum += Number(code6[i]) * weights[i]!;
+  }
+  const check = (11 - (sum % 11)) % 10;
+  return check === Number(code6[5]);
+}
+
+/** 市区町村コードとして桁数・チェックデジットが正しければ true */
+export function isValidMunicipalityCode(input: string): boolean {
+  return normalizeMunicipalityCode(input) !== null;
+}
+
 /** getByCode 用: 2 桁都道府県 or 6 桁市区町村。それ以外は null */
 export function normalizeLookupCode(
   input: string,
@@ -16,16 +36,17 @@ export function normalizeLookupCode(
   if (digits.length === 1 || digits.length === 2) {
     return { kind: "prefecture", code: digits.padStart(2, "0") };
   }
-  if (digits.length === 6) {
+  if (digits.length === 6 && hasValidCheckDigit(digits)) {
     return { kind: "municipality", code: digits };
   }
   return null;
 }
 
-/** 市区町村コード（6 桁）のみ。それ以外は null */
+/** 市区町村コード（6 桁・チェックデジット有効）のみ。それ以外は null */
 export function normalizeMunicipalityCode(input: string): string | null {
   const digits = input.replace(/\D/g, "");
-  return digits.length === 6 ? digits : null;
+  if (digits.length !== 6 || !hasValidCheckDigit(digits)) return null;
+  return digits;
 }
 
 /**
