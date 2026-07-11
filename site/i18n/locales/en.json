@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "home": "Home",
+    "gettingStarted": "Getting started",
+    "api": "API",
+    "playground": "Playground",
+    "language": "Language"
+  },
+  "playground": {
+    "title": "Playground",
+    "description": "Try code lookup and text search in the browser (official dataset bundled).",
+    "codeLookup": "Code lookup",
+    "codeLookupHint": "Prefecture: 2 digits, municipality: 6 digits (e.g. 13 / 131016)",
+    "search": "Text search",
+    "searchHint": "Partial match on name, kana, or hiragana",
+    "query": "Query",
+    "prefecture": "Prefecture (optional)",
+    "prefectureAll": "Nationwide",
+    "target": "Target",
+    "targetAll": "All",
+    "targetPrefectures": "Prefectures",
+    "targetCities": "Municipalities",
+    "run": "Run",
+    "result": "Result",
+    "empty": "No results",
+    "loading": "Initializing…",
+    "error": "Error"
+  },
+  "codeLookupDemo": {
+    "label": "Try a code",
+    "placeholder": "131016",
+    "run": "Resolve",
+    "empty": "Not found"
+  }
+}

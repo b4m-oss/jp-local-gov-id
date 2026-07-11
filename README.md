@@ -4,6 +4,8 @@
 
 A monorepo for Japan’s nationwide local government codes (npm workspaces).
 
+**Docs / Playground:** _(Netlify URL — set after first deploy)_
+
 | Package | Description | Version |
 |---------|-------------|---------|
 | [`@b4moss/jp-local-gov-id`](./packages/jp-local-gov-id) | JS API (data not bundled; lazy-loaded) | 0.1.0 |

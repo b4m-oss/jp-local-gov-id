@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build:site"
+  publish = "site/.output/public"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NITRO_PRESET = "static"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
