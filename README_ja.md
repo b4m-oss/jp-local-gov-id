@@ -21,34 +21,39 @@ npm install @b4moss/jp-local-gov-id
 
 ## 使い方
 
-`createLocalGov` は async です。`data` または `url`（**index.json** の版付き URL）のいずれかが必須です。
+`createLocalGovClient` は async です。`data` または `url`（**index.json** の版付き URL）のいずれかが必須です。
 
 初期化ではインデックスと都道府県のみを読み込み、市区町村は県単位で遅延ロードします。全国対象の文字列検索では、未ロードの県別 JSON を同時 6 件で取得します。
 
 ```ts
-import { createLocalGov } from "@b4moss/jp-local-gov-id";
+import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
 import dataset from "@b4moss/jp-local-gov-id-data";
 
-const client = await createLocalGov({ data: dataset });
+const client = await createLocalGovClient({ data: dataset });
 
 client.listPrefectures();
-client.getPrefectureCode("大阪府"); // "27"
-await client.getMunicipalitiesByPrefecture("13"); // 東京都の市区町村等
-await client.getByCode("131016"); // 千代田区
-await client.search("中央", { prefecture: "01", target: "cities" });
-await client.getCodeByName("千代田区"); // "131016"
+client.getPrefectureByCode("27"); // 大阪府
+client.getPrefectureCodeByName("大阪府"); // "27"
+await client.listMunicipalitiesByPrefecture("13"); // 東京都の市区町村等
+await client.getMunicipalityByCode("131016"); // 千代田区
+await client.getByCode("131016");
+await client.searchByText("中央", { prefecture: "01", target: "cities" });
+await client.searchByText("ちよだ", { prefecture: "13", target: "cities" }); // カナ／ひらがな可
+await client.getLocalGovCodeByName("千代田区"); // "131016"
 ```
 
 版付きインデックス URL から取得する場合:
 
 ```ts
-const client = await createLocalGov({
+const client = await createLocalGovClient({
   url: "https://example.com/jp-local-gov-id-data/0.2.0/index.json",
 });
 ```
 
-- `url` 指定時のみ、取得した各ファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+- 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します
 - localStorage が無い環境（Node 等）ではキャッシュをスキップします
+- 文字列検索はひらがな／全角カナを半角カナへ正規化します（`matchField` 既定: `"both"`）
 - スキーマ不一致・不正 JSON は `LocalGovSchemaError`、ネットワーク / HTTP エラーは通常の fetch エラーです
 - クエリで見つからない・同名衝突の場合は `null` / `[]` を返します（throw しません）
 
@@ -96,7 +101,7 @@ npm run build
 ## データについて
 
 - 時点: 令和 6 年 1 月 1 日（R6.1.1）
-- ソースファイル: `resources/000925835.xlsx`
+- ソースファイル: `https://www.soumu.go.jp/denshijiti/code.html`
 - 廃止・合併済みの団体は含みません（現行のみ）
 - API パッケージには JSON を同梱しません（`@b4moss/jp-local-gov-id-data` または URL で渡してください）
 

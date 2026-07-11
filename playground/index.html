@@ -78,12 +78,12 @@
     <h1>@b4moss/jp-local-gov-id playground</h1>
     <p class="note">
       API は esm.sh、データは jsDelivr 上の版付き <code>index.json</code> を
-      <code>createLocalGov({ url })</code> で読みます。
+      <code>createLocalGovClient({ url })</code> で読みます。
     </p>
 
     <div class="row">
       <div class="field">
-        <label for="query">検索語（部分一致）</label>
+        <label for="query">検索語（部分一致・カナ可）</label>
         <input id="query" type="text" value="中央" />
       </div>
       <div class="field">
@@ -100,14 +100,14 @@
           <option value="cities" selected>cities</option>
         </select>
       </div>
-      <button id="run" type="button">search</button>
+      <button id="run" type="button">searchByText</button>
     </div>
 
     <p id="status" class="status">初期化中…</p>
     <pre id="out">[]</pre>
 
     <script type="module">
-      import { createLocalGov } from "https://esm.sh/@b4moss/jp-local-gov-id@0.1.0";
+      import { createLocalGovClient } from "https://esm.sh/@b4moss/jp-local-gov-id@0.1.0";
 
       // 版付き URL（jsDelivr / npm パッケージ実体）
       const DATA_BASE =
@@ -124,7 +124,7 @@
       let client;
 
       try {
-        client = await createLocalGov({ url: INDEX_URL });
+        client = await createLocalGovClient({ url: INDEX_URL });
         for (const p of client.listPrefectures()) {
           const opt = document.createElement("option");
           opt.value = p.code;
@@ -147,7 +147,7 @@
           };
           if (prefEl.value) options.prefecture = prefEl.value;
 
-          const results = await client.search(queryEl.value, options);
+          const results = await client.searchByText(queryEl.value, options);
           outEl.textContent = JSON.stringify(results, null, 2);
           statusEl.textContent = `${results.length} hit(s)`;
         } catch (error) {
