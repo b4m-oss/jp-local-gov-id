@@ -23,9 +23,11 @@ JavaScript で、現在の都道府県・市区町村の地方自治体コード
 | 対象 | 形式 | 入力時の許容 |
 |------|------|--------------|
 | 都道府県 | 半角数字 2 桁 | 0 埋めの有無どちらも許容（例: `"1"` / `"01"`） |
-| 市区町村 | チェックデジット込みの 6 桁 | 6 桁を正式とする |
+| 市区町村 | チェックデジット込みの 6 桁 | 6 桁を正式とする。検査数字が不正な場合は無効とし、データ取得リクエストを行わない |
 
 都道府県向け API と市区町村向け API で、扱う桁を分ける。
+
+市区町村コードの検査数字は、先頭 5 桁に重み `6,5,4,3,2` を掛けた和を 11 で割った余り `r` について `(11 - r) % 10` で求める。`getMunicipalityByCode` / `getByCode`（6 桁）は、検査数字が一致しない場合は `null` を返し、県別 JSON を fetch しない。`isValidMunicipalityCode` で事前検証できる。
 
 ## スコープ
 
@@ -120,7 +122,8 @@ const client = await createLocalGovClient({
 - `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` / 都道府県指定の検索で取得した県別 JSON は従来どおりキャッシュする
 - `data` を直接渡した場合はキャッシュしない
 - **キャッシュキーは版付き URL そのもの**とする（公式の利用方法）
-- 有効期限は **1 年**
+- 有効期限の既定は **1 年**。`createLocalGovClient({ url, cacheTtlMs })` で変更できる
+- `createLocalGovClient({ url, cache: false })` でキャッシュの読み書きを無効化できる（既定は `cache: true`）
 - localStorage が使えない環境（Node 等）ではキャッシュをスキップしてよい
 - 同一 URL の中身を後から書き換えた場合の整合は保証しない
 - 既に localStorage にある県別 JSON は、全国検索時も読み取り再利用してよい（書き込みだけ抑止）
