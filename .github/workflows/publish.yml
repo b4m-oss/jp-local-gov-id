@@ -37,12 +37,26 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify repository.url for provenance
+        run: |
+          expected='https://github.com/b4m-oss/jp-local-gov-id'
+          for pkg in packages/jp-local-gov-id-data packages/jp-local-gov-id; do
+            url=$(node -p "require('./${pkg}/package.json').repository?.url ?? ''")
+            echo "${pkg}: repository.url=${url}"
+            if [ "$url" != "$expected" ]; then
+              echo "::error::${pkg}/package.json repository.url must be exactly ${expected} (got: '${url}')"
+              exit 1
+            fi
+          done
+
       - name: Publish @b4moss/jp-local-gov-id-data
-        run: npm publish -w @b4moss/jp-local-gov-id-data --access public --provenance
+        working-directory: packages/jp-local-gov-id-data
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @b4moss/jp-local-gov-id
-        run: npm publish -w @b4moss/jp-local-gov-id --access public --provenance
+        working-directory: packages/jp-local-gov-id
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
