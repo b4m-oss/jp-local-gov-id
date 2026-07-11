@@ -11,11 +11,28 @@ export type SearchTarget = "all" | "prefectures" | "cities";
 
 export type MatchField = "name" | "nameKana" | "both";
 
+/**
+ * How to include designated cities (政令指定都市) and their wards.
+ * - both: city body and wards (default)
+ * - city: city body only (exclude wards like 札幌市中央区)
+ * - ward: wards only (exclude city bodies like 札幌市)
+ *
+ * Tokyo special wards (千代田区 etc.) are not affected.
+ */
+export type DesignatedCityMode = "both" | "city" | "ward";
+
+export type ListMunicipalitiesOptions = {
+  /** Default: "both" */
+  designatedCity?: DesignatedCityMode;
+};
+
 export type SearchOptions = {
   prefecture?: string;
   target?: SearchTarget;
   /** Default: "both" */
   matchField?: MatchField;
+  /** Default: "both" */
+  designatedCity?: DesignatedCityMode;
 };
 
 /** Index file (`index.json`) */
@@ -75,7 +92,10 @@ export type LocalGovClient = {
   listPrefectures(): LocalGov[];
   getPrefectureByCode(code: string): LocalGov | null;
   getPrefectureCodeByName(name: string): string | null;
-  listMunicipalitiesByPrefecture(pref: string): Promise<LocalGov[]>;
+  listMunicipalitiesByPrefecture(
+    pref: string,
+    options?: ListMunicipalitiesOptions,
+  ): Promise<LocalGov[]>;
   getMunicipalityByCode(code: string): Promise<LocalGov | null>;
   getByCode(code: string): Promise<LocalGov | null>;
   searchByText(text: string, options?: SearchOptions): Promise<LocalGov[]>;
