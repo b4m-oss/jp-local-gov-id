@@ -65,7 +65,11 @@
     "prefecturePlaceholder": "Select a prefecture",
     "municipality": "Municipality",
     "municipalityPlaceholder": "Select a municipality",
-    "loadingMunicipalities": "Loading…"
+    "loadingMunicipalities": "Loading…",
+    "designatedCity": "Designated city display",
+    "designatedCityBoth": "City and wards",
+    "designatedCityCity": "City only",
+    "designatedCityWard": "Wards only"
   },
   "municipalityValidationDemo": {
     "loading": "Initializing…",
