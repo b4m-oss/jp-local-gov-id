@@ -3,6 +3,11 @@ import type { LocalGov, SearchTarget } from "@b4moss/jp-local-gov-id";
 
 const { t } = useI18n();
 
+useSeoMeta({
+  title: () => t("playground.title"),
+  description: () => t("playground.description"),
+});
+
 const ready = ref(false);
 const initError = ref<string | null>(null);
 const prefectures = ref<LocalGov[]>([]);

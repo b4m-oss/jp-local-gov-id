@@ -43,6 +43,11 @@ if (!page.value) {
     fatal: false,
   });
 }
+
+useSeoMeta({
+  title: () => page.value?.title || "jp-local-gov-id",
+  description: () => page.value?.description || undefined,
+});
 </script>
 
 <template>

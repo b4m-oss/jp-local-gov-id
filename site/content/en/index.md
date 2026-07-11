@@ -1,5 +1,5 @@
 ---
-title: jp-local-gov-id
+title: Home
 description: An npm package for Japan’s nationwide local government codes
 ---
 
