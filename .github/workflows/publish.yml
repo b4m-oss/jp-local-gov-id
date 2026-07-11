@@ -3,6 +3,17 @@ name: Publish
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Which package to publish
+        required: true
+        type: choice
+        options:
+          - both
+          - data
+          - api
+        default: both
 
 concurrency:
   group: publish-${{ github.ref }}
@@ -21,6 +32,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show publish context
+        run: |
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          git log -1 --oneline
+          echo "--- data package.json (repository) ---"
+          node -p "JSON.stringify(require('./packages/jp-local-gov-id-data/package.json').repository, null, 2)"
+          echo "--- api package.json (repository) ---"
+          node -p "JSON.stringify(require('./packages/jp-local-gov-id/package.json').repository, null, 2)"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,12 +58,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify repository.url for provenance
+        run: npm run check-publish
+
       - name: Publish @b4moss/jp-local-gov-id-data
-        run: npm publish -w @b4moss/jp-local-gov-id-data --access public --provenance
+        if: ${{ github.event_name == 'release' || inputs.package == 'both' || inputs.package == 'data' }}
+        working-directory: packages/jp-local-gov-id-data
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @b4moss/jp-local-gov-id
-        run: npm publish -w @b4moss/jp-local-gov-id --access public --provenance
+        if: ${{ github.event_name == 'release' || inputs.package == 'both' || inputs.package == 'api' }}
+        working-directory: packages/jp-local-gov-id
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
