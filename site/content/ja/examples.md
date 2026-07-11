@@ -11,6 +11,8 @@ description: 住所入力・市区町村バリデーションの利用例
 
 都道府県を選ぶと、配下の市区町村がプルダウンに読み込まれます。`listPrefectures` と `listMunicipalitiesByPrefecture` を使っています。
 
+`designatedCity`（`"both"` | `"city"` | `"ward"`、既定 `"both"`）で政令指定都市の市本体 / 行政区の出し分けができます。東京特別区は影響を受けません。
+
 ::address-input-demo
 ::
 
@@ -19,6 +21,13 @@ description: 住所入力・市区町村バリデーションの利用例
 <select id="prefecture">
   <option value="">選択してください</option>
   <!-- listPrefectures() の結果で option を埋める -->
+</select>
+
+<label for="designated-city">政令指定都市の表示</label>
+<select id="designated-city">
+  <option value="both">市と区の両方</option>
+  <option value="city">市のみ</option>
+  <option value="ward">区のみ</option>
 </select>
 
 <label for="municipality">市区町村</label>
@@ -30,11 +39,13 @@ description: 住所入力・市区町村バリデーションの利用例
 
 ```ts
 import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
+import type { DesignatedCityMode } from "@b4moss/jp-local-gov-id";
 import dataset from "@b4moss/jp-local-gov-id-data";
 
 const client = await createLocalGovClient({ data: dataset });
 
 const prefSelect = document.querySelector("#prefecture");
+const modeSelect = document.querySelector("#designated-city");
 const muniSelect = document.querySelector("#municipality");
 
 for (const pref of client.listPrefectures()) {
@@ -44,7 +55,7 @@ for (const pref of client.listPrefectures()) {
   prefSelect.append(option);
 }
 
-prefSelect.addEventListener("change", async () => {
+async function loadMunicipalities() {
   muniSelect.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.value = "";
@@ -56,8 +67,10 @@ prefSelect.addEventListener("change", async () => {
     return;
   }
 
+  const designatedCity = modeSelect.value as DesignatedCityMode;
   const municipalities = await client.listMunicipalitiesByPrefecture(
     prefSelect.value,
+    { designatedCity },
   );
   for (const muni of municipalities) {
     const option = document.createElement("option");
@@ -66,7 +79,10 @@ prefSelect.addEventListener("change", async () => {
     muniSelect.append(option);
   }
   muniSelect.disabled = false;
-});
+}
+
+prefSelect.addEventListener("change", loadMunicipalities);
+modeSelect.addEventListener("change", loadMunicipalities);
 ```
 
 ## 市区町村バリデーション
