@@ -40,7 +40,8 @@ const client = await createLocalGov({
 });
 ```
 
-- When `url` is set, each fetched file is cached in localStorage (key = file URL, TTL 1 year)
+- When `url` is set, fetched files are cached in localStorage (key = file URL, TTL 1 year)
+- Exception: municipality JSON loaded by **nationwide** string search is kept in memory only (not written to localStorage)
 - Environments without localStorage (e.g. Node) skip caching
 - Schema mismatches / invalid JSON raise `LocalGovSchemaError`; network / HTTP failures are normal fetch errors
 - Missing or ambiguous query results return `null` / `[]` (they do not throw)

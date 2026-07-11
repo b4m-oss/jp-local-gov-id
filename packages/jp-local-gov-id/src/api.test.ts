@@ -343,6 +343,49 @@ describe("createLocalGov url + cache + lazy load", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2 + 47);
     expect(maxInFlight).toBe(MUNICIPALITY_FETCH_CONCURRENCY);
     expect(MUNICIPALITY_FETCH_CONCURRENCY).toBe(6);
+
+    // Nationwide search keeps municipality JSON in memory only
+    for (const key of store.keys()) {
+      expect(key).not.toMatch(/\/prefectures\/\d{2}\.json$/);
+    }
+    expect(store.has(indexUrl)).toBe(true);
+    expect(
+      store.has(
+        "https://cdn.example.com/jp-local-gov-id-data/0.2.0/prefectures.json",
+      ),
+    ).toBe(true);
+
+    // Second nationwide search reuses memory (no extra fetch)
+    await c.search("中央", { target: "cities" });
+    expect(fetchMock).toHaveBeenCalledTimes(2 + 47);
+  });
+
+  it("getByCode persists municipality JSON to localStorage", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+    const c = await createLocalGov({ url: indexUrl });
+
+    await c.getByCode("131016");
+    expect(
+      store.has(
+        "https://cdn.example.com/jp-local-gov-id-data/0.2.0/prefectures/13.json",
+      ),
+    ).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("prefecture-scoped search persists municipality JSON to localStorage", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+    const c = await createLocalGov({ url: indexUrl });
+
+    await c.search("中央", { prefecture: "01", target: "cities" });
+    expect(
+      store.has(
+        "https://cdn.example.com/jp-local-gov-id-data/0.2.0/prefectures/01.json",
+      ),
+    ).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("prefectures-only search does not fetch municipality files", async () => {

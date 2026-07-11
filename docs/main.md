@@ -105,7 +105,7 @@ const client = await createLocalGov({
 - **全国を対象とする文字列検索**（`search` / `getCodeByName` で都道府県に絞らない、かつ市区町村が対象に含まれる場合など）では、未ロードの県別 JSON をすべて取得してから検索する
 - その際の並列度は **同時 6 件**とする（6 件ずつ並列 fetch）
 - すでにメモリ上にある県別データは再取得しない
-- `url` 経路で取得した各ファイルは、後述の localStorage キャッシュ対象とする
+- `url` 経路で取得した各ファイルは、後述の localStorage キャッシュ対象とする（ただし全国検索で取得した県別 JSON は例外）
 
 ### スキーマ検証
 
@@ -116,11 +116,14 @@ const client = await createLocalGov({
 ### URL 取得時のキャッシュ（localStorage）
 
 - **`url` 起点で fetch した各ファイル**について、結果を localStorage に保存して再利用する
+- 例外: **全国対象の文字列検索**で取得した県別 JSON（`prefectures/{code}.json`）は localStorage に書かず、**メモリのみ**保持する
+- `getByCode` / `getMunicipalitiesByPrefecture` / 都道府県指定の検索で取得した県別 JSON は従来どおりキャッシュする
 - `data` を直接渡した場合はキャッシュしない
 - **キャッシュキーは版付き URL そのもの**とする（公式の利用方法）
 - 有効期限は **1 年**
 - localStorage が使えない環境（Node 等）ではキャッシュをスキップしてよい
 - 同一 URL の中身を後から書き換えた場合の整合は保証しない
+- 既に localStorage にある県別 JSON は、全国検索時も読み取り再利用してよい（書き込みだけ抑止）
 
 ### 公式 URL と自前データ
 

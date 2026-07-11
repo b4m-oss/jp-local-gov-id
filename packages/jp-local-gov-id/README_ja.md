@@ -40,7 +40,8 @@ const client = await createLocalGov({
 });
 ```
 
-- `url` 指定時のみ、取得した各ファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+- 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します
 - localStorage が無い環境（Node 等）ではキャッシュをスキップします
 - スキーマ不一致・不正 JSON は `LocalGovSchemaError`、ネットワーク / HTTP エラーは通常の fetch エラーです
 - クエリで見つからない・同名衝突の場合は `null` / `[]` を返します（throw しません）

@@ -40,7 +40,10 @@ async function collectByTarget(
       await store.ensureMunicipalities([prefectureCode]);
       munis = [...(store.getMunicipalities(prefectureCode) ?? [])];
     } else {
-      await store.ensureMunicipalities(store.allPrefectureCodes);
+      // Nationwide search: keep in memory only; do not write localStorage
+      await store.ensureMunicipalities(store.allPrefectureCodes, {
+        persist: false,
+      });
       munis = store.allPrefectureCodes.flatMap(
         (code) => store.getMunicipalities(code) ?? [],
       );
