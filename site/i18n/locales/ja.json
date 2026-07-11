@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "gettingStarted": "はじめに",
+    "installation": "インストール",
+    "usage": "使い方",
+    "api": "API",
+    "examples": "サンプル",
+    "playground": "Playground",
+    "contribute": "開発に参加する",
+    "language": "言語",
+    "menu": "メニュー",
+    "github": "GitHub",
+    "prev": "前へ",
+    "next": "次へ",
+    "pager": "ページナビゲーション",
+    "versions": "パッケージバージョン"
+  },
+  "theme": {
+    "label": "テーマ",
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム"
+  },
+  "playground": {
+    "title": "Playground",
+    "description": "ブラウザ上でコード解決と文字列検索を試せます（公式データを同梱）。",
+    "codeLookup": "コード解決",
+    "codeLookupHint": "都道府県は 2 桁、市区町村は 6 桁（例: 13 / 131016）",
+    "search": "文字列検索",
+    "searchHint": "名前・カナ・ひらがなで部分一致検索",
+    "query": "クエリ",
+    "prefecture": "都道府県（任意）",
+    "prefectureAll": "全国",
+    "target": "対象",
+    "targetAll": "すべて",
+    "targetPrefectures": "都道府県",
+    "targetCities": "市区町村",
+    "run": "実行",
+    "result": "結果",
+    "empty": "結果なし",
+    "loading": "初期化中…",
+    "error": "エラー"
+  },
+  "codeLookupDemo": {
+    "label": "コードを試す",
+    "placeholder": "131016",
+    "run": "解決",
+    "empty": "見つかりませんでした"
+  }
+}

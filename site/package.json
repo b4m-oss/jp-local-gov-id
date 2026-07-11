@@ -1,0 +1,22 @@
+{
+  "name": "jp-local-gov-id-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@b4moss/jp-local-gov-id": "*",
+    "@b4moss/jp-local-gov-id-data": "*",
+    "@nuxt/content": "^3.14.0",
+    "@nuxt/scripts": "^1.3.0",
+    "@nuxtjs/color-mode": "^4.0.1",
+    "@nuxtjs/i18n": "^9.5.6",
+    "nuxt": "^4.4.8",
+    "vue": "^3.5.35",
+    "vue-router": "^5.1.0"
+  }
+}

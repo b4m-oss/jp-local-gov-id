@@ -8,6 +8,9 @@ dist/
 *.log
 *.local
 .DS_Store
+.env
+.env.*
+!.env.example
 
 # npm pack artifacts
 *.tgz
