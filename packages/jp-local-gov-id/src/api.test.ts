@@ -2,6 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import dataset from "@b4moss/jp-local-gov-id-data";
 import { createLocalGovClient } from "./create";
 import { CACHE_TTL_MS } from "./cache";
+import {
+  hasValidCheckDigit,
+  isValidMunicipalityCode,
+  normalizeLookupCode,
+  normalizeMunicipalityCode,
+} from "./normalize";
 import { MUNICIPALITY_FETCH_CONCURRENCY } from "./pool";
 import { LocalGovSchemaError } from "./schema";
 import type { LocalGovClient, LocalGovIndexFile } from "./types";
@@ -138,6 +144,27 @@ describe("listMunicipalitiesByPrefecture", () => {
   });
 });
 
+describe("check digit validation", () => {
+  it("accepts known valid municipality codes", () => {
+    for (const code of ["131016", "011002", "011011", "271004", "131024"]) {
+      expect(hasValidCheckDigit(code)).toBe(true);
+      expect(isValidMunicipalityCode(code)).toBe(true);
+      expect(normalizeMunicipalityCode(code)).toBe(code);
+      expect(normalizeLookupCode(code)).toEqual({
+        kind: "municipality",
+        code,
+      });
+    }
+  });
+
+  it("rejects 6-digit codes with invalid check digit", () => {
+    expect(hasValidCheckDigit("131017")).toBe(false);
+    expect(isValidMunicipalityCode("131017")).toBe(false);
+    expect(normalizeMunicipalityCode("131017")).toBeNull();
+    expect(normalizeLookupCode("131017")).toBeNull();
+  });
+});
+
 describe("getMunicipalityByCode", () => {
   it("resolves municipality by 6-digit code", async () => {
     expect((await (await client()).getMunicipalityByCode("131016"))?.name).toBe(
@@ -150,6 +177,7 @@ describe("getMunicipalityByCode", () => {
     expect(await c.getMunicipalityByCode("13")).toBeNull();
     expect(await c.getMunicipalityByCode("1")).toBeNull();
     expect(await c.getMunicipalityByCode("999999")).toBeNull();
+    expect(await c.getMunicipalityByCode("131017")).toBeNull();
   });
 });
 
@@ -176,6 +204,7 @@ describe("getByCode", () => {
     expect(await c.getByCode("999999")).toBeNull();
     expect(await c.getByCode("")).toBeNull();
     expect(await c.getByCode("123")).toBeNull();
+    expect(await c.getByCode("131017")).toBeNull();
   });
 });
 
@@ -464,6 +493,17 @@ describe("createLocalGovClient url + cache + lazy load", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  it("does not fetch when check digit is invalid", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+    const c = await createLocalGovClient({ url: indexUrl });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    expect(await c.getByCode("131017")).toBeNull();
+    expect(await c.getMunicipalityByCode("131017")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("prefecture-scoped search persists municipality JSON to localStorage", async () => {
     stubLocalStorage();
     const fetchMock = stubFetch(fileMap());
@@ -544,5 +584,31 @@ describe("createLocalGovClient url + cache + lazy load", () => {
 
     await createLocalGovClient({ url: indexUrl });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips localStorage when cache is false", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+
+    const c = await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(c.listPrefectures()).toHaveLength(47);
+    expect(store.size).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(store.size).toBe(0);
+  });
+
+  it("uses custom cacheTtlMs for expiresAt", async () => {
+    stubLocalStorage();
+    stubFetch(fileMap());
+    const ttlMs = 1000;
+
+    await createLocalGovClient({ url: indexUrl, cacheTtlMs: ttlMs });
+    const cached = JSON.parse(store.get(indexUrl)!);
+    expect(cached.expiresAt).toBeGreaterThan(Date.now());
+    expect(cached.expiresAt).toBeLessThanOrEqual(Date.now() + ttlMs + 100);
+    expect(cached.expiresAt).toBeLessThan(Date.now() + CACHE_TTL_MS / 2);
   });
 });

@@ -1,4 +1,4 @@
-import { getCachedData, setCachedData } from "./cache";
+import { CACHE_TTL_MS, getCachedData, setCachedData } from "./cache";
 import { buildLocalGovClient } from "./api";
 import {
   LocalGovSchemaError,
@@ -22,7 +22,12 @@ function hasData(
 
 function hasUrl(
   options: CreateLocalGovOptions,
-): options is { url: string; data?: never } {
+): options is {
+  url: string;
+  data?: never;
+  cache?: boolean;
+  cacheTtlMs?: number;
+} {
   return "url" in options && typeof options.url === "string";
 }
 
@@ -57,27 +62,46 @@ async function fetchJson(url: string): Promise<unknown> {
   return parsed;
 }
 
+type FetchCacheOptions = {
+  persist?: boolean;
+  cache?: boolean;
+  cacheTtlMs?: number;
+};
+
 async function fetchAndCache<T>(
   url: string,
   validate: (data: unknown) => T,
-  options?: { persist?: boolean },
+  options?: FetchCacheOptions,
 ): Promise<T> {
-  const cached = getCachedData(url);
-  if (cached !== null) {
-    // Re-validate cached payloads so schema changes surface clearly
-    return validate(cached);
+  const cacheEnabled = options?.cache !== false;
+  const ttlMs = options?.cacheTtlMs ?? CACHE_TTL_MS;
+
+  if (cacheEnabled) {
+    const cached = getCachedData(url);
+    if (cached !== null) {
+      // Re-validate cached payloads so schema changes surface clearly
+      return validate(cached);
+    }
   }
 
   const parsed = await fetchJson(url);
   const validated = validate(parsed);
-  if (options?.persist !== false) {
-    setCachedData(url, parsed);
+  if (cacheEnabled && options?.persist !== false) {
+    setCachedData(url, parsed, ttlMs);
   }
   return validated;
 }
 
-async function createFromUrl(indexUrl: string): Promise<LocalGovClient> {
-  const index = await fetchAndCache(indexUrl, validateIndexFile);
+async function createFromUrl(
+  indexUrl: string,
+  cacheOptions: { cache?: boolean; cacheTtlMs?: number },
+): Promise<LocalGovClient> {
+  const fetchOpts = {
+    cache: cacheOptions.cache,
+    cacheTtlMs: cacheOptions.cacheTtlMs,
+  };
+
+  const index = await fetchAndCache(indexUrl, validateIndexFile, fetchOpts);
 
   const prefecturesUrl = resolveSiblingUrl(
     indexUrl,
@@ -86,6 +110,7 @@ async function createFromUrl(indexUrl: string): Promise<LocalGovClient> {
   const prefecturesFile = await fetchAndCache(
     prefecturesUrl,
     validatePrefecturesFile,
+    fetchOpts,
   );
 
   const store = createStore(
@@ -97,6 +122,7 @@ async function createFromUrl(indexUrl: string): Promise<LocalGovClient> {
         municipalitiesPath(index, code),
       );
       const file = await fetchAndCache(url, validateMunicipalitiesFile, {
+        ...fetchOpts,
         persist: loadOptions?.persist,
       });
       return file.municipalities;
@@ -167,7 +193,10 @@ export async function createLocalGovClient(
   }
 
   if (urlProvided) {
-    return createFromUrl(options.url);
+    return createFromUrl(options.url, {
+      cache: options.cache,
+      cacheTtlMs: options.cacheTtlMs,
+    });
   }
 
   return createFromData(options.data);

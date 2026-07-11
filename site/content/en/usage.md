@@ -146,6 +146,8 @@ Then pass the `url` option when creating the client.
 ```ts
 const client = await createLocalGovClient({
   url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+  // cache: false,        // disable cache (default: true)
+  // cacheTtlMs: 86_400_000, // TTL = 1 day (default: 1 year)
 });
 ```
 
@@ -153,7 +155,8 @@ This example uses a jsDelivr URL, but you can also serve a self-hosted dataset a
 
 Prefer a versioned URL. The client caches responses, so if the dataset updates under a non-unique URL, stale cache may be served.
 
-- With `url`, fetched files are cached in localStorage (key = each file URL, TTL 1 year)
+- With `url`, fetched files are cached in localStorage (key = each file URL, default TTL 1 year)
+- Set `cache: false` to disable cache read/write; set `cacheTtlMs` to change TTL (milliseconds)
 - Exception: municipality JSON loaded by **nationwide** string search stays in memory only (to avoid cache bloat)
 - Environments without localStorage (e.g. Node) skip caching
 - String search normalizes hiragana / fullwidth kana to halfwidth kana (`matchField` default: `"both"`)
@@ -172,7 +175,8 @@ Supported code formats:
     - `01` and `1` behave the same
 - Local government codes
   - 6 digits including the check digit
-  - Missing check digit is an error
+  - Invalid or missing check digit → `null` (no data fetch)
+  - Use `isValidMunicipalityCode` to validate beforehand
 
 ## Dataset layout
 

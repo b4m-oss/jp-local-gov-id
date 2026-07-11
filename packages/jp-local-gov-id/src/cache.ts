@@ -53,12 +53,16 @@ export function getCachedData(url: string): unknown | null {
 }
 
 /** Store fetch result under the versioned URL key. No-op without localStorage. */
-export function setCachedData(url: string, data: unknown): void {
+export function setCachedData(
+  url: string,
+  data: unknown,
+  ttlMs: number = CACHE_TTL_MS,
+): void {
   const storage = getLocalStorage();
   if (!storage) return;
 
   const entry: CacheEntry = {
-    expiresAt: Date.now() + CACHE_TTL_MS,
+    expiresAt: Date.now() + ttlMs,
     data,
   };
 

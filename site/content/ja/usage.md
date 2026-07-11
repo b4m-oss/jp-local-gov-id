@@ -146,6 +146,8 @@ npm install @b4moss/jp-local-gov-id
 ```ts
 const client = await createLocalGovClient({
   url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+  // cache: false,        // キャッシュを無効化（既定: true）
+  // cacheTtlMs: 86_400_000, // TTL を 1 日に（既定: 1 年）
 });
 ```
 
@@ -153,7 +155,8 @@ const client = await createLocalGovClient({
 
 その場合、URLにはversionを指定することをお勧めします。アプリにはキャッシュ機能があるため、データソースが更新された場合、URLが一意でないと、古いキャッシュが配信される可能性があります。
 
-- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限の既定は 1 年）
+- `cache: false` でキャッシュの読み書きを無効化、`cacheTtlMs` で TTL（ミリ秒）を変更できます
 - 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します（キャッシュの巨大化を避けるため）
 - localStorage が無い環境（Node 等）ではキャッシュをスキップします
 - 文字列検索はひらがな／全角カナを半角カナへ正規化します（`matchField` 既定: `"both"`）
@@ -172,7 +175,8 @@ const client = await createLocalGovClient({
     - `01`と`1`は同じ挙動となる
 - 地方公共団体コード
   - チェックデジット込みの6桁
-  - チェックデジット欠損時はエラーです
+  - チェックデジットが不正・欠損の場合は `null` を返し、データ取得リクエストは行いません
+  - `isValidMunicipalityCode` で事前検証できます
 
 ## データソースの構成
 
