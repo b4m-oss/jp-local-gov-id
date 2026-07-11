@@ -19,11 +19,39 @@ client.listPrefectures();
 client.getPrefectureByCode("27"); // 大阪府
 client.getPrefectureCodeByName("大阪府"); // "27"
 await client.listMunicipalitiesByPrefecture("13"); // 東京都の市区町村等
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "city" }); // 政令市本体のみ
 await client.getMunicipalityByCode("131016"); // 千代田区
 await client.getByCode("131016");
 await client.searchByText("中央", { prefecture: "01", target: "cities" });
 await client.searchByText("ちよだ", { prefecture: "13", target: "cities" }); // カナ／ひらがな可
 await client.getLocalGovCodeByName("千代田区"); // "131016"
+```
+
+### 政令指定都市の市/区フィルタ
+
+住所フォームで「市だけ選びたい」「区だけ選びたい」場合は `designatedCity` を使います（既定 `"both"`）。
+
+| 値 | 意味 | 例（北海道） |
+|----|------|--------------|
+| `"both"` | 市本体と区の両方 | `札幌市` と `札幌市中央区` |
+| `"city"` | 市本体のみ | `札幌市` のみ |
+| `"ward"` | 区のみ | `札幌市中央区` など |
+
+適用 API: `listMunicipalitiesByPrefecture` / `searchByText` / `getLocalGovCodeByName`。東京特別区は対象外です。
+
+```ts
+// 住所セレクト: 市のみ
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "city" });
+
+// 住所セレクト: 区のみ
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "ward" });
+
+// 検索でも同じオプションが使える
+await client.searchByText("札幌", {
+  prefecture: "01",
+  target: "cities",
+  designatedCity: "ward",
+});
 ```
 
 このように、アプリケーションとデータをそれぞれ npm パッケージから呼び出し、読み込めば使用できます。
