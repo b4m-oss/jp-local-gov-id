@@ -34,19 +34,38 @@ Exactly one is required.
 | `listPrefectures()` | `LocalGov[]` | All prefectures |
 | `getPrefectureByCode(code)` | `LocalGov \| null` | Lookup by prefecture code |
 | `getPrefectureCodeByName(name)` | `string \| null` | Prefecture code from exact name |
-| `listMunicipalitiesByPrefecture(pref)` | `Promise<LocalGov[]>` | Municipalities in a prefecture (lazy) |
+| `listMunicipalitiesByPrefecture(pref, options?)` | `Promise<LocalGov[]>` | Municipalities in a prefecture (lazy) |
 | `getMunicipalityByCode(code)` | `Promise<LocalGov \| null>` | Lookup by 6-digit municipality code |
 | `getByCode(code)` | `Promise<LocalGov \| null>` | Auto-detect 2-digit / 6-digit |
 | `searchByText(text, options?)` | `Promise<LocalGov[]>` | Partial-match search |
 | `getLocalGovCodeByName(name, options?)` | `Promise<string \| null>` | Code from exact name |
 
-### `searchByText` options
+### `designatedCity` option
+
+Filters designated-city bodies vs administrative wards. Default is `"both"`. Tokyo special wards (e.g. `千代田区`) are not affected.
+
+| Value | Meaning |
+|-------|---------|
+| `"both"` | City body and wards (default) |
+| `"city"` | City body only (exclude wards) |
+| `"ward"` | Wards only (exclude city bodies) |
+
+Applies to: `listMunicipalitiesByPrefecture` / `searchByText` / `getLocalGovCodeByName`
+
+### `listMunicipalitiesByPrefecture` options
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `designatedCity` | `'both' \| 'city' \| 'ward'` | `'both'` | Designated-city body/ward filter |
+
+### `searchByText` / `getLocalGovCodeByName` options
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `prefecture` | `string` | — | Filter by prefecture |
 | `target` | `'all' \| 'prefectures' \| 'cities'` | `'all'` | Search target |
 | `matchField` | `'name' \| 'nameKana' \| 'both'` | `'both'` | Fields to match |
+| `designatedCity` | `'both' \| 'city' \| 'ward'` | `'both'` | Designated-city body/ward filter |
 
 String search normalizes hiragana / fullwidth kana to halfwidth kana.
 
