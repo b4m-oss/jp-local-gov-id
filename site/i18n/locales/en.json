@@ -47,5 +47,25 @@
     "placeholder": "131016",
     "run": "Resolve",
     "empty": "Not found"
+  },
+  "addressInputDemo": {
+    "loading": "Initializing…",
+    "prefecture": "Prefecture",
+    "prefecturePlaceholder": "Select a prefecture",
+    "municipality": "Municipality",
+    "municipalityPlaceholder": "Select a municipality",
+    "loadingMunicipalities": "Loading…"
+  },
+  "municipalityValidationDemo": {
+    "loading": "Initializing…",
+    "prefecture": "Prefecture",
+    "prefecturePlaceholder": "Select a prefecture",
+    "municipality": "Municipality name",
+    "placeholder": "千代田区",
+    "run": "Validate",
+    "needPrefecture": "Please select a prefecture",
+    "needName": "Please enter a municipality name",
+    "invalid": "This municipality name does not exist",
+    "valid": "Valid (code: {code})"
   }
 }
