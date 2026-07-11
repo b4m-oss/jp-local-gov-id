@@ -29,6 +29,9 @@
     "prefecture"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@b4moss/jp-local-gov-id-data": "0.1.0",
     "typescript": "^5.8.3",

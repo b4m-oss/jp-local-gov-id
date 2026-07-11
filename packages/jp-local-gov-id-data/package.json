@@ -32,5 +32,8 @@
     "municipality",
     "prefecture"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }
