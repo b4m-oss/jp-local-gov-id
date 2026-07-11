@@ -90,5 +90,9 @@
     "townAddressPlaceholder": "e.g. Marunouchi 1-1-1",
     "buildingName": "Building name",
     "buildingNamePlaceholder": "e.g. Foo Building 3F"
+  },
+  "collapseBox": {
+    "expand": "Show more",
+    "collapse": "Show less"
   }
 }
