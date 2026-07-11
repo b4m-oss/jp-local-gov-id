@@ -11,7 +11,7 @@ description: 住所入力・市区町村バリデーションの利用例
 
 都道府県を選ぶと、配下の市区町村がプルダウンに読み込まれます。`listPrefectures` と `listMunicipalitiesByPrefecture` を使っています。
 
-`designatedCity`（`"both"` | `"city"` | `"ward"`、既定 `"both"`）で政令指定都市の市本体 / 行政区の出し分けができます。東京特別区は影響を受けません。
+`designatedCity`（`"both"` | `"city"` | `"ward"`、既定 `"both"`）で政令指定都市の市本体 / 行政区の出し分けができます。東京特別区は影響を受けません。町名・番地と建物名は見た目用のフィールドです（API には渡しません）。
 
 ::address-input-demo
 ::
@@ -37,6 +37,12 @@ description: 住所入力・市区町村バリデーションの利用例
   <option value="">選択してください</option>
   <!-- 都道府県変更時に listMunicipalitiesByPrefecture() で option を埋める -->
 </select>
+
+<label for="town">町名・番地</label>
+<input id="town" type="text" placeholder="例: 丸の内1-1-1" />
+
+<label for="building">建物名</label>
+<input id="building" type="text" placeholder="例: ○○ビル 3F" />
 ```
 
 ```ts
@@ -91,7 +97,7 @@ modeSelect.addEventListener("change", loadMunicipalities);
 
 ## 市区町村バリデーション
 
-都道府県を選んだうえで市区町村名を入力し、実在するか検証します。正式名称に一致しない場合はエラーになります（`getLocalGovCodeByName`）。
+都道府県を選んだうえで市区町村名を入力し、実在するか検証します。正式名称に一致しない場合はエラーになります（`getLocalGovCodeByName`）。町名・番地と建物名は見た目用です。
 
 ::municipality-validation-demo
 ::
@@ -107,6 +113,12 @@ modeSelect.addEventListener("change", loadMunicipalities);
 
 <label for="municipality-name">市区町村名</label>
 <input id="municipality-name" type="text" placeholder="千代田区" />
+
+<label for="town">町名・番地</label>
+<input id="town" type="text" placeholder="例: 丸の内1-1-1" />
+
+<label for="building">建物名</label>
+<input id="building" type="text" placeholder="例: ○○ビル 3F" />
 
 <button type="button" id="validate">検証</button>
 <p id="message" hidden></p>
