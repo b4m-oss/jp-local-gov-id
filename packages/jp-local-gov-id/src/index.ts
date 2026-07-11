@@ -7,10 +7,11 @@ export type {
   LocalGovIndexFile,
   LocalGovMunicipalitiesFile,
   LocalGovPrefecturesFile,
+  MatchField,
   SearchOptions,
   SearchTarget,
 } from "./types";
-export { createLocalGov } from "./create";
+export { createLocalGovClient } from "./create";
 export {
   LOCAL_GOV_SCHEMA_VERSION,
   LocalGovSchemaError,
