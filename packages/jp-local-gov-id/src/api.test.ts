@@ -125,10 +125,39 @@ describe("listMunicipalitiesByPrefecture", () => {
     expect(byUnpadded).toEqual(byName);
   });
 
-  it("includes designated city body and ward", async () => {
+  it("includes designated city body and ward by default (both)", async () => {
     const munis = await (await client()).listMunicipalitiesByPrefecture("01");
     expect(munis.find((m) => m.code === "011002")?.name).toBe("札幌市");
     expect(munis.find((m) => m.code === "011011")?.name).toBe("札幌市中央区");
+  });
+
+  it("designatedCity city keeps body and excludes wards", async () => {
+    const munis = await (
+      await client()
+    ).listMunicipalitiesByPrefecture("01", { designatedCity: "city" });
+    expect(munis.some((m) => m.name === "札幌市")).toBe(true);
+    expect(munis.some((m) => m.name === "札幌市中央区")).toBe(false);
+    expect(munis.every((m) => !/^.+市.+区$/.test(m.name))).toBe(true);
+  });
+
+  it("designatedCity ward keeps wards and excludes body", async () => {
+    const munis = await (
+      await client()
+    ).listMunicipalitiesByPrefecture("01", { designatedCity: "ward" });
+    expect(munis.some((m) => m.name === "札幌市")).toBe(false);
+    expect(munis.some((m) => m.name === "札幌市中央区")).toBe(true);
+  });
+
+  it("designatedCity modes keep Tokyo special wards", async () => {
+    const c = await client();
+    const city = await c.listMunicipalitiesByPrefecture("13", {
+      designatedCity: "city",
+    });
+    const ward = await c.listMunicipalitiesByPrefecture("13", {
+      designatedCity: "ward",
+    });
+    expect(city.some((m) => m.name === "千代田区")).toBe(true);
+    expect(ward.some((m) => m.name === "千代田区")).toBe(true);
   });
 
   it("returns empty array when prefecture is unknown", async () => {
@@ -544,5 +573,38 @@ describe("createLocalGovClient url + cache + lazy load", () => {
 
     await createLocalGovClient({ url: indexUrl });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips localStorage when cache is false", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+
+    await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(store.size).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("uses cacheTtlSeconds when writing cache entries", async () => {
+    stubLocalStorage();
+    stubFetch(fileMap());
+    const before = Date.now();
+
+    await createLocalGovClient({ url: indexUrl, cacheTtlSeconds: 60 });
+
+    const cached = JSON.parse(store.get(indexUrl)!);
+    expect(cached.expiresAt).toBeGreaterThanOrEqual(before + 60_000);
+    expect(cached.expiresAt).toBeLessThanOrEqual(Date.now() + 60_000 + 1000);
+  });
+
+  it("rejects invalid cacheTtlSeconds", async () => {
+    stubLocalStorage();
+    stubFetch(fileMap());
+
+    await expect(
+      createLocalGovClient({ url: indexUrl, cacheTtlSeconds: -1 }),
+    ).rejects.toThrow(/cacheTtlSeconds/);
   });
 });
