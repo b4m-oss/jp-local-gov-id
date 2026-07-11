@@ -14,6 +14,19 @@ const slug = computed(() => {
   return withLeadingSlash(joined);
 });
 
+/** Ignore browser / tooling asset probes (e.g. manifest.webmanifest). */
+const isAssetPath = computed(() =>
+  /\.[a-z0-9]{2,8}$/i.test(slug.value.replace(/\/$/, "")),
+);
+
+if (isAssetPath.value) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: "Not Found",
+    fatal: false,
+  });
+}
+
 const { data: page } = await useAsyncData(
   () => `content-${locale.value}-${slug.value}`,
   async () => {
@@ -27,7 +40,7 @@ if (!page.value) {
   throw createError({
     statusCode: 404,
     statusMessage: "Page not found",
-    fatal: true,
+    fatal: false,
   });
 }
 </script>

@@ -1,12 +1,11 @@
 <script setup lang="ts">
-const { t, locale, locales } = useI18n();
-const switchLocalePath = useSwitchLocalePath();
+const { t, locale, locales, setLocale } = useI18n();
 const localePath = useLocalePath();
 
 const selected = computed({
   get: () => locale.value,
   set: (code: string) => {
-    navigateTo(switchLocalePath(code));
+    void setLocale(code);
   },
 });
 </script>

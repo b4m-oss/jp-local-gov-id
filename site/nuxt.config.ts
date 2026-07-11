@@ -48,7 +48,7 @@ export default defineNuxtConfig({
     preset: "static",
     prerender: {
       crawlLinks: true,
-      routes: ["/", "/ja", "/en", "/ja/playground", "/en/playground"],
+      routes: ["/ja", "/en", "/ja/playground", "/en/playground"],
     },
   },
 })
