@@ -13,7 +13,7 @@
     "test": "npm run test -w @b4moss/jp-local-gov-id",
     "generate": "npm run generate -w jp-local-gov-id-scripts",
     "check-publish": "node scripts/check-publish.mjs",
-    "publish:dry-run": "npm run check-publish && npm publish --dry-run --access public --workspace @b4moss/jp-local-gov-id-data && npm publish --dry-run --access public --workspace @b4moss/jp-local-gov-id"
+    "publish:dry-run": "node scripts/publish-package.mjs packages/jp-local-gov-id-data --dry-run && node scripts/publish-package.mjs packages/jp-local-gov-id --dry-run"
   },
   "license": "MIT",
   "repository": {

@@ -1,11 +1,31 @@
 name: Publish
 
+# Tag / Release routing (only the matching package):
+#   data-v* → @b4moss/jp-local-gov-id-data
+#   app-v*  → @b4moss/jp-local-gov-id
+#
+# Manual Run workflow is also available.
+# repository.url is injected before pack so older tags still work with provenance.
 on:
+  push:
+    tags:
+      - "data-v*"
+      - "app-v*"
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Which package to publish (manual only)
+        required: true
+        type: choice
+        options:
+          - data
+          - api
+        default: data
 
 concurrency:
-  group: publish-${{ github.ref }}
+  group: publish-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -16,16 +36,52 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref_name, 'data-v') ||
+      startsWith(github.ref_name, 'app-v')
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Resolve publish target
+        id: target
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            package='${{ inputs.package }}'
+          else
+            tag='${{ github.ref_name }}'
+            case "$tag" in
+              data-v*) package=data ;;
+              app-v*) package=api ;;
+              *)
+                echo "::error::Unsupported tag '${tag}'. Use data-v* or app-v*."
+                exit 1
+                ;;
+            esac
+          fi
+          echo "package=${package}" >> "$GITHUB_OUTPUT"
+          echo "Resolved publish target: ${package}"
+
+      - name: Banner
+        run: |
+          echo "=============================================="
+          echo "PUBLISH_WORKFLOW_ID=tag-prefix-route-v5"
+          echo "event=${{ github.event_name }}"
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          echo "target=${{ steps.target.outputs.package }}"
+          git log -1 --oneline
+          echo "=============================================="
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
@@ -37,26 +93,70 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Verify repository.url for provenance
-        run: |
-          expected='https://github.com/b4m-oss/jp-local-gov-id'
-          for pkg in packages/jp-local-gov-id-data packages/jp-local-gov-id; do
-            url=$(node -p "require('./${pkg}/package.json').repository?.url ?? ''")
-            echo "${pkg}: repository.url=${url}"
-            if [ "$url" != "$expected" ]; then
-              echo "::error::${pkg}/package.json repository.url must be exactly ${expected} (got: '${url}')"
-              exit 1
-            fi
-          done
-
       - name: Publish @b4moss/jp-local-gov-id-data
-        working-directory: packages/jp-local-gov-id-data
-        run: npm publish --access public --provenance
+        if: ${{ steps.target.outputs.package == 'data' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          expected='https://github.com/b4m-oss/jp-local-gov-id'
+          pkg_dir='packages/jp-local-gov-id-data'
+
+          node <<'EOF'
+          const fs = require('fs');
+          const path = 'packages/jp-local-gov-id-data/package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          pkg.repository = {
+            type: 'git',
+            url: 'https://github.com/b4m-oss/jp-local-gov-id',
+            directory: 'packages/jp-local-gov-id-data',
+          };
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          console.log('injected', pkg.repository);
+          EOF
+
+          cd "$pkg_dir"
+          tgz=$(npm pack --pack-destination . | tail -n1 | tr -d '\r')
+          echo "packed=${tgz}"
+          tar -xOf "$tgz" package/package.json > /tmp/packed-package.json
+          url=$(node -p "require('/tmp/packed-package.json').repository?.url ?? ''")
+          echo "packed repository.url=${url}"
+          if [ "$url" != "$expected" ]; then
+            echo "::error::Packed repository.url must be ${expected} (got '${url}')"
+            exit 1
+          fi
+          npm publish "$tgz" --access public --provenance
 
       - name: Publish @b4moss/jp-local-gov-id
-        working-directory: packages/jp-local-gov-id
-        run: npm publish --access public --provenance
+        if: ${{ steps.target.outputs.package == 'api' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          expected='https://github.com/b4m-oss/jp-local-gov-id'
+          pkg_dir='packages/jp-local-gov-id'
+
+          node <<'EOF'
+          const fs = require('fs');
+          const path = 'packages/jp-local-gov-id/package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          pkg.repository = {
+            type: 'git',
+            url: 'https://github.com/b4m-oss/jp-local-gov-id',
+            directory: 'packages/jp-local-gov-id',
+          };
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          console.log('injected', pkg.repository);
+          EOF
+
+          cd "$pkg_dir"
+          tgz=$(npm pack --pack-destination . | tail -n1 | tr -d '\r')
+          echo "packed=${tgz}"
+          tar -xOf "$tgz" package/package.json > /tmp/packed-package.json
+          url=$(node -p "require('/tmp/packed-package.json').repository?.url ?? ''")
+          echo "packed repository.url=${url}"
+          if [ "$url" != "$expected" ]; then
+            echo "::error::Packed repository.url must be ${expected} (got '${url}')"
+            exit 1
+          fi
+          npm publish "$tgz" --access public --provenance
