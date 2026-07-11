@@ -32,7 +32,7 @@ Prefer loading split JSON via `url` rather than bundling `dataset.js`.
 <html lang="en">
   <body>
     <script type="module">
-      import { createLocalGovClient } from "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id@0.2.0/dist/jp-local-gov-id.js";
+      import { createLocalGovClient } from "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id@0.4.2/dist/jp-local-gov-id.js";
 
       const client = await createLocalGovClient({
         url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",

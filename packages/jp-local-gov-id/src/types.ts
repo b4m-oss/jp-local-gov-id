@@ -69,7 +69,14 @@ export type LocalGovDataset = {
 
 export type CreateLocalGovOptions =
   | { data: LocalGovDataset | unknown; url?: never }
-  | { url: string; data?: never };
+  | {
+      url: string;
+      data?: never;
+      /** Default: true. Only applies to `url` mode. */
+      cache?: boolean;
+      /** Default: 1 year in ms. Only applies when cache is enabled. */
+      cacheTtlMs?: number;
+    };
 
 export type LocalGovClient = {
   listPrefectures(): LocalGov[];

@@ -12,6 +12,7 @@ export type {
   SearchTarget,
 } from "./types";
 export { createLocalGovClient } from "./create";
+export { isValidMunicipalityCode } from "./normalize";
 export {
   LOCAL_GOV_SCHEMA_VERSION,
   LocalGovSchemaError,

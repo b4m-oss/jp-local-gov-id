@@ -8,6 +8,7 @@
   --color-accent-soft: #e6f4ef;
   --color-accent-hover: #0a5441;
   --color-error: #a32020;
+  --color-ok: #1a7f37;
   --color-bg-glow-1: #dceee8;
   --color-bg-glow-2: #e8eef5;
   --font-sans: "IBM Plex Sans", "Hiragino Sans", "Noto Sans JP", sans-serif;
@@ -27,6 +28,7 @@
   --color-accent-soft: #16352c;
   --color-accent-hover: #5fd0ad;
   --color-error: #f07178;
+  --color-ok: #7fd99a;
   --color-bg-glow-1: #122820;
   --color-bg-glow-2: #152030;
 }

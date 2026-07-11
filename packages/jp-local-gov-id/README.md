@@ -43,19 +43,21 @@ const client = await createLocalGovClient({
 });
 ```
 
-- When `url` is set, fetched files are cached in localStorage (key = file URL, TTL 1 year)
+- When `url` is set, fetched files are cached in localStorage (key = file URL, default TTL 1 year)
+- Use `cache: false` / `cacheTtlMs` to disable caching or change TTL
 - Exception: municipality JSON loaded by **nationwide** string search is kept in memory only (not written to localStorage)
 - Environments without localStorage (e.g. Node) skip caching
 - String search normalizes hiragana / fullwidth kana to halfwidth kana (`matchField` default: `"both"`)
 - Schema mismatches / invalid JSON raise `LocalGovSchemaError`; network / HTTP failures are normal fetch errors
 - Missing or ambiguous query results return `null` / `[]` (they do not throw)
+- Invalid municipality check digits return `null` without fetching (`isValidMunicipalityCode` available)
 
 ## Code formats
 
 | Target | Format | Accepted input |
 |--------|--------|----------------|
 | Prefecture | 2-digit half-width digits | With or without zero-padding (`"1"` / `"01"`) |
-| Municipality | 6 digits including check digit | 6 digits is the canonical form |
+| Municipality | 6 digits including check digit | Invalid check digit → `null` (no fetch) |
 
 ## License
 

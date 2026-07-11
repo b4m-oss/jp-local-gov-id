@@ -12,8 +12,9 @@
 - スキーマ不正 → `LocalGovSchemaError`
 - ネットワーク / HTTP 失敗 → 通常の fetch エラー
 - 都道府県コード: 2 桁（入力は `"1"` / `"01"` どちらも可）
-- 市区町村コード: 6 桁（チェックデジット込み）
+- 市区町村コード: 6 桁（チェックデジット込み）。検査数字が不正なら正規化失敗 → `null`（fetch しない）
 - 市区町村が必要な操作は async（遅延ロード）
+- 検査数字: 先頭 5 桁 × 重み `6,5,4,3,2` の和を 11 で割った余り `r` について `(11 - r) % 10`
 
 ### `LocalGov`
 
@@ -45,12 +46,14 @@
 
 | 経路 | localStorage 書き込み | メモリ |
 |------|----------------------|--------|
-| 初期化（index / prefectures） | する | する |
-| `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` | する | する |
-| 都道府県指定の `searchByText` / `getLocalGovCodeByName` | する | する |
+| 初期化（index / prefectures） | する（`cache: false` ならしない） | する |
+| `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` | する（同上） | する |
+| 都道府県指定の `searchByText` / `getLocalGovCodeByName` | する（同上） | する |
 | **全国**の `searchByText` / `getLocalGovCodeByName`（市区町村対象） | **しない** | する |
 
-全国検索の並列度: 同時 6（`MUNICIPALITY_FETCH_CONCURRENCY`）
+- `cache` 既定: `true`（読み書きとも有効）
+- `cacheTtlMs` 既定: 1 年（ミリ秒）
+- 全国検索の並列度: 同時 6（`MUNICIPALITY_FETCH_CONCURRENCY`）
 
 ---
 
@@ -60,9 +63,13 @@
 
 #### `createLocalGovClient(options)` → `Promise<LocalGovClient>`
 
-- `options`: `{ data }` または `{ url }`（どちらか必須、両方不可）
+- `options`: `{ data }` または `{ url, cache?, cacheTtlMs? }`（`data` / `url` どちらか必須、両方不可）
+- `cache`（`url` のみ、既定 `true`）: localStorage キャッシュの ON/OFF
+- `cacheTtlMs`（`url` のみ、既定 1 年）: キャッシュ有効期限（ミリ秒）
 - index + 都道府県を読み込み、スキーマ検証してクライアントを返す
 - 市区町村はまだ読まない
+
+公開ヘルパー: `isValidMunicipalityCode(code)` → 6 桁かつ検査数字が正しければ `true`
 
 #### クライアントメソッド
 
@@ -90,14 +97,14 @@
 
 ##### `getMunicipalityByCode(code)` → `Promise<LocalGov | null>`
 
-- 6 桁のみ（それ以外は `null`）
+- 6 桁かつ検査数字が正しいもののみ（それ以外は `null`、fetch しない）
 - 先頭 2 桁で県を特定してロード
 - 不正・不明 → `null`
 
 ##### `getByCode(code)` → `Promise<LocalGov | null>`
 
 - 2 桁 → `getPrefectureByCode`（同期相当を async で返す）
-- 6 桁 → `getMunicipalityByCode`
+- 6 桁 → `getMunicipalityByCode`（検査数字不正なら fetch せず `null`）
 - 不正・不明 → `null`
 
 ##### `searchByText(text, options?)` → `Promise<LocalGov[]>`

@@ -43,19 +43,21 @@ const client = await createLocalGovClient({
 });
 ```
 
-- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限の既定は 1 年）
+- `cache: false` / `cacheTtlMs` でキャッシュの無効化や TTL 変更ができます
 - 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します
 - localStorage が無い環境（Node 等）ではキャッシュをスキップします
 - 文字列検索はひらがな／全角カナを半角カナへ正規化します（`matchField` 既定: `"both"`）
 - スキーマ不一致・不正 JSON は `LocalGovSchemaError`、ネットワーク / HTTP エラーは通常の fetch エラーです
 - クエリで見つからない・同名衝突の場合は `null` / `[]` を返します（throw しません）
+- 市区町村コードのチェックデジットが不正な場合は fetch せず `null`（`isValidMunicipalityCode` あり）
 
 ## コード形式
 
 | 対象 | 形式 | 入力時の許容 |
 |------|------|--------------|
 | 都道府県 | 半角数字 2 桁 | 0 埋めの有無どちらも可（`"1"` / `"01"`） |
-| 市区町村 | チェックデジット込みの 6 桁 | 6 桁を正式とする |
+| 市区町村 | チェックデジット込みの 6 桁 | 検査数字不正 → `null`（fetch しない） |
 
 ## ライセンス
 
