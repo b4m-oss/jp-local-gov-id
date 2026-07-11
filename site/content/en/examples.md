@@ -11,6 +11,8 @@ Interactive examples in the browser (official dataset bundled).
 
 Select a prefecture to load its municipalities into a dropdown. Uses `listPrefectures` and `listMunicipalitiesByPrefecture`.
 
+`designatedCity` (`"both"` | `"city"` | `"ward"`, default `"both"`) filters designated-city bodies vs wards. Tokyo special wards are not affected.
+
 ::address-input-demo
 ::
 
@@ -19,6 +21,13 @@ Select a prefecture to load its municipalities into a dropdown. Uses `listPrefec
 <select id="prefecture">
   <option value="">Select a prefecture</option>
   <!-- Fill options with listPrefectures() -->
+</select>
+
+<label for="designated-city">Designated city display</label>
+<select id="designated-city">
+  <option value="both">City and wards</option>
+  <option value="city">City only</option>
+  <option value="ward">Wards only</option>
 </select>
 
 <label for="municipality">Municipality</label>
@@ -30,11 +39,13 @@ Select a prefecture to load its municipalities into a dropdown. Uses `listPrefec
 
 ```ts
 import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
+import type { DesignatedCityMode } from "@b4moss/jp-local-gov-id";
 import dataset from "@b4moss/jp-local-gov-id-data";
 
 const client = await createLocalGovClient({ data: dataset });
 
 const prefSelect = document.querySelector("#prefecture");
+const modeSelect = document.querySelector("#designated-city");
 const muniSelect = document.querySelector("#municipality");
 
 for (const pref of client.listPrefectures()) {
@@ -44,7 +55,7 @@ for (const pref of client.listPrefectures()) {
   prefSelect.append(option);
 }
 
-prefSelect.addEventListener("change", async () => {
+async function loadMunicipalities() {
   muniSelect.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.value = "";
@@ -56,8 +67,10 @@ prefSelect.addEventListener("change", async () => {
     return;
   }
 
+  const designatedCity = modeSelect.value as DesignatedCityMode;
   const municipalities = await client.listMunicipalitiesByPrefecture(
     prefSelect.value,
+    { designatedCity },
   );
   for (const muni of municipalities) {
     const option = document.createElement("option");
@@ -66,7 +79,10 @@ prefSelect.addEventListener("change", async () => {
     muniSelect.append(option);
   }
   muniSelect.disabled = false;
-});
+}
+
+prefSelect.addEventListener("change", loadMunicipalities);
+modeSelect.addEventListener("change", loadMunicipalities);
 ```
 
 ## Municipality validation
