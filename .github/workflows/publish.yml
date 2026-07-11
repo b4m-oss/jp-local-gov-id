@@ -1,16 +1,13 @@
 name: Publish
 
-# Tag / Release routing (only the matching package):
+# Release published routing (only the matching package):
 #   data-v* → @b4moss/jp-local-gov-id-data
 #   app-v*  → @b4moss/jp-local-gov-id
 #
-# Manual Run workflow is also available.
+# Tag push alone does not publish; create and publish a GitHub Release.
+# Manual workflow_dispatch is also available.
 # repository.url is injected before pack so older tags still work with provenance.
 on:
-  push:
-    tags:
-      - "data-v*"
-      - "app-v*"
   release:
     types: [published]
   workflow_dispatch:
@@ -38,8 +35,8 @@ jobs:
       id-token: write
     if: >
       github.event_name == 'workflow_dispatch' ||
-      startsWith(github.ref_name, 'data-v') ||
-      startsWith(github.ref_name, 'app-v')
+      startsWith(github.event.release.tag_name, 'data-v') ||
+      startsWith(github.event.release.tag_name, 'app-v')
 
     steps:
       - name: Checkout
@@ -54,7 +51,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             package='${{ inputs.package }}'
           else
-            tag='${{ github.ref_name }}'
+            tag='${{ github.event.release.tag_name }}'
             case "$tag" in
               data-v*) package=data ;;
               app-v*) package=api ;;
