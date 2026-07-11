@@ -24,11 +24,29 @@
   },
   "playground": {
     "title": "Playground",
-    "description": "Try code lookup and text search in the browser (official dataset bundled).",
-    "codeLookup": "Code lookup",
-    "codeLookupHint": "Prefecture: 2 digits, municipality: 6 digits (e.g. 13 / 131016)",
-    "search": "Text search",
-    "searchHint": "Partial match on name, kana, or hiragana",
+    "description": "Write TypeScript and run {'@'}b4moss/jp-local-gov-id in the browser (top-level await supported).",
+    "template": "Template",
+    "templates": {
+      "getByCode": "Code lookup (getByCode)",
+      "searchByText": "Text search (searchByText)",
+      "listPrefectures": "List prefectures & municipalities"
+    },
+    "run": "Run",
+    "runShortcutMac": "⌘+Enter",
+    "runShortcutOther": "Ctrl+Enter",
+    "running": "Running…",
+    "output": "Output",
+    "outputEmpty": "Console output will appear here after you run the code.",
+    "illegalImport": "Illegal import: {source}. Only {'@'}b4moss/jp-local-gov-id and {'@'}b4moss/jp-local-gov-id-data are allowed."
+  },
+  "codeLookupDemo": {
+    "label": "Try a code",
+    "placeholder": "131016",
+    "run": "Resolve",
+    "empty": "Not found"
+  },
+  "searchDemo": {
+    "hint": "Partial match on name, kana, or hiragana",
     "query": "Query",
     "prefecture": "Prefecture (optional)",
     "prefectureAll": "Nationwide",
@@ -39,13 +57,26 @@
     "run": "Run",
     "result": "Result",
     "empty": "No results",
-    "loading": "Initializing…",
-    "error": "Error"
+    "loading": "Initializing…"
   },
-  "codeLookupDemo": {
-    "label": "Try a code",
-    "placeholder": "131016",
-    "run": "Resolve",
-    "empty": "Not found"
+  "addressInputDemo": {
+    "loading": "Initializing…",
+    "prefecture": "Prefecture",
+    "prefecturePlaceholder": "Select a prefecture",
+    "municipality": "Municipality",
+    "municipalityPlaceholder": "Select a municipality",
+    "loadingMunicipalities": "Loading…"
+  },
+  "municipalityValidationDemo": {
+    "loading": "Initializing…",
+    "prefecture": "Prefecture",
+    "prefecturePlaceholder": "Select a prefecture",
+    "municipality": "Municipality name",
+    "placeholder": "千代田区",
+    "run": "Validate",
+    "needPrefecture": "Please select a prefecture",
+    "needName": "Please enter a municipality name",
+    "invalid": "This municipality name does not exist",
+    "valid": "Valid (code: {code})"
   }
 }

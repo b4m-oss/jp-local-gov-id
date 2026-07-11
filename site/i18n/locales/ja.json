@@ -24,11 +24,29 @@
   },
   "playground": {
     "title": "Playground",
-    "description": "ブラウザ上でコード解決と文字列検索を試せます（公式データを同梱）。",
-    "codeLookup": "コード解決",
-    "codeLookupHint": "都道府県は 2 桁、市区町村は 6 桁（例: 13 / 131016）",
-    "search": "文字列検索",
-    "searchHint": "名前・カナ・ひらがなで部分一致検索",
+    "description": "TypeScript を書いて {'@'}b4moss/jp-local-gov-id をブラウザ上で実行できます（top-level await 対応）。",
+    "template": "テンプレート",
+    "templates": {
+      "getByCode": "コード解決 (getByCode)",
+      "searchByText": "文字列検索 (searchByText)",
+      "listPrefectures": "都道府県・市区町村一覧"
+    },
+    "run": "実行",
+    "runShortcutMac": "⌘+Enter",
+    "runShortcutOther": "Ctrl+Enter",
+    "running": "実行中…",
+    "output": "出力",
+    "outputEmpty": "実行すると console の出力がここに表示されます。",
+    "illegalImport": "許可されていない import です: {source}。{'@'}b4moss/jp-local-gov-id と {'@'}b4moss/jp-local-gov-id-data のみ使えます。"
+  },
+  "codeLookupDemo": {
+    "label": "コードを試す",
+    "placeholder": "131016",
+    "run": "解決",
+    "empty": "見つかりませんでした"
+  },
+  "searchDemo": {
+    "hint": "名前・カナ・ひらがなで部分一致検索",
     "query": "クエリ",
     "prefecture": "都道府県（任意）",
     "prefectureAll": "全国",
@@ -39,13 +57,26 @@
     "run": "実行",
     "result": "結果",
     "empty": "結果なし",
-    "loading": "初期化中…",
-    "error": "エラー"
+    "loading": "初期化中…"
   },
-  "codeLookupDemo": {
-    "label": "コードを試す",
-    "placeholder": "131016",
-    "run": "解決",
-    "empty": "見つかりませんでした"
+  "addressInputDemo": {
+    "loading": "初期化中…",
+    "prefecture": "都道府県",
+    "prefecturePlaceholder": "選択してください",
+    "municipality": "市区町村",
+    "municipalityPlaceholder": "選択してください",
+    "loadingMunicipalities": "読み込み中…"
+  },
+  "municipalityValidationDemo": {
+    "loading": "初期化中…",
+    "prefecture": "都道府県",
+    "prefecturePlaceholder": "選択してください",
+    "municipality": "市区町村名",
+    "placeholder": "千代田区",
+    "run": "検証",
+    "needPrefecture": "都道府県を選択してください",
+    "needName": "市区町村名を入力してください",
+    "invalid": "存在しない市区町村名です",
+    "valid": "有効です（コード: {code}）"
   }
 }
