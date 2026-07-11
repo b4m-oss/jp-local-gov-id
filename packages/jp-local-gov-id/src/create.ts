@@ -1,5 +1,5 @@
 import { getCachedData, setCachedData } from "./cache";
-import { createLocalGovClient } from "./api";
+import { buildLocalGovClient } from "./api";
 import {
   LocalGovSchemaError,
   normalizeDatasetInput,
@@ -60,6 +60,7 @@ async function fetchJson(url: string): Promise<unknown> {
 async function fetchAndCache<T>(
   url: string,
   validate: (data: unknown) => T,
+  options?: { persist?: boolean },
 ): Promise<T> {
   const cached = getCachedData(url);
   if (cached !== null) {
@@ -69,7 +70,9 @@ async function fetchAndCache<T>(
 
   const parsed = await fetchJson(url);
   const validated = validate(parsed);
-  setCachedData(url, parsed);
+  if (options?.persist !== false) {
+    setCachedData(url, parsed);
+  }
   return validated;
 }
 
@@ -88,17 +91,19 @@ async function createFromUrl(indexUrl: string): Promise<LocalGovClient> {
   const store = createStore(
     index,
     prefecturesFile.prefectures,
-    async (code) => {
+    async (code, loadOptions) => {
       const url = resolveSiblingUrl(
         indexUrl,
         municipalitiesPath(index, code),
       );
-      const file = await fetchAndCache(url, validateMunicipalitiesFile);
+      const file = await fetchAndCache(url, validateMunicipalitiesFile, {
+        persist: loadOptions?.persist,
+      });
       return file.municipalities;
     },
   );
 
-  return createLocalGovClient(store);
+  return buildLocalGovClient(store);
 }
 
 async function createFromData(data: unknown): Promise<LocalGovClient> {
@@ -129,7 +134,7 @@ async function createFromData(data: unknown): Promise<LocalGovClient> {
     },
   );
 
-  return createLocalGovClient(store);
+  return buildLocalGovClient(store);
 }
 
 /**
@@ -137,12 +142,12 @@ async function createFromData(data: unknown): Promise<LocalGovClient> {
  * Municipality JSON is loaded lazily (concurrency 6 for nationwide search).
  * Pass either `{ data }` (dataset) or `{ url }` (versioned index.json URL).
  */
-export async function createLocalGov(
+export async function createLocalGovClient(
   options: CreateLocalGovOptions,
 ): Promise<LocalGovClient> {
   if (!options || typeof options !== "object") {
     throw new TypeError(
-      "createLocalGov requires options with either `data` or `url`",
+      "createLocalGovClient requires options with either `data` or `url`",
     );
   }
 
@@ -151,13 +156,13 @@ export async function createLocalGov(
 
   if (dataProvided && urlProvided) {
     throw new TypeError(
-      "createLocalGov accepts either `data` or `url`, not both",
+      "createLocalGovClient accepts either `data` or `url`, not both",
     );
   }
 
   if (!dataProvided && !urlProvided) {
     throw new TypeError(
-      "createLocalGov requires either `data` or `url`",
+      "createLocalGovClient requires either `data` or `url`",
     );
   }
 

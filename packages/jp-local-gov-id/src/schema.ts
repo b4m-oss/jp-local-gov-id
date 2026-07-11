@@ -151,7 +151,7 @@ export function validateMunicipalitiesFile(
 }
 
 /**
- * Normalize `createLocalGov({ data })` input into index + prefectures + loader pieces.
+ * Normalize `createLocalGovClient({ data })` input into index + prefectures + loader pieces.
  */
 export function normalizeDatasetInput(data: unknown): {
   index: unknown;

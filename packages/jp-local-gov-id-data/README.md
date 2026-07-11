@@ -13,10 +13,10 @@ npm install @b4moss/jp-local-gov-id-data
 ## Usage with the API package
 
 ```ts
-import { createLocalGov } from "@b4moss/jp-local-gov-id";
+import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
 import dataset from "@b4moss/jp-local-gov-id-data";
 
-const client = await createLocalGov({ data: dataset });
+const client = await createLocalGovClient({ data: dataset });
 ```
 
 You can also import individual files:
