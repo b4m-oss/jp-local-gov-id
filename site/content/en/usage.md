@@ -19,11 +19,39 @@ client.listPrefectures();
 client.getPrefectureByCode("27"); // Osaka
 client.getPrefectureCodeByName("大阪府"); // "27"
 await client.listMunicipalitiesByPrefecture("13"); // Tokyo municipalities, etc.
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "city" }); // designated-city body only
 await client.getMunicipalityByCode("131016"); // Chiyoda
 await client.getByCode("131016");
 await client.searchByText("中央", { prefecture: "01", target: "cities" });
 await client.searchByText("ちよだ", { prefecture: "13", target: "cities" }); // kana / hiragana OK
 await client.getLocalGovCodeByName("千代田区"); // "131016"
+```
+
+### Designated-city body / ward filter
+
+For address forms that need “city only” or “wards only”, use `designatedCity` (default `"both"`).
+
+| Value | Meaning | Example (Hokkaido) |
+|-------|---------|--------------------|
+| `"both"` | City body and wards | `札幌市` and `札幌市中央区` |
+| `"city"` | City body only | `札幌市` only |
+| `"ward"` | Wards only | `札幌市中央区`, etc. |
+
+Applies to: `listMunicipalitiesByPrefecture` / `searchByText` / `getLocalGovCodeByName`. Tokyo special wards are not affected.
+
+```ts
+// Address select: city only
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "city" });
+
+// Address select: wards only
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "ward" });
+
+// Same option works with search
+await client.searchByText("札幌", {
+  prefecture: "01",
+  target: "cities",
+  designatedCity: "ward",
+});
 ```
 
 Install the app and data packages from npm, then import and use them as shown above.
