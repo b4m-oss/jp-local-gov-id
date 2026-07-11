@@ -8,6 +8,8 @@ const initError = ref<string | null>(null);
 const prefectures = ref<LocalGov[]>([]);
 const prefectureCode = ref("");
 const municipalityName = ref("");
+const townAddress = ref("");
+const buildingName = ref("");
 const pending = ref(false);
 const error = ref<string | null>(null);
 const resolvedCode = ref<string | null | undefined>(undefined);
@@ -102,6 +104,28 @@ async function validate() {
             {{ t("municipalityValidationDemo.run") }}
           </button>
         </div>
+      </div>
+      <div class="field">
+        <label for="valid-town">
+          {{ t("municipalityValidationDemo.townAddress") }}
+        </label>
+        <input
+          id="valid-town"
+          v-model="townAddress"
+          type="text"
+          :placeholder="t('municipalityValidationDemo.townAddressPlaceholder')"
+        >
+      </div>
+      <div class="field">
+        <label for="valid-building">
+          {{ t("municipalityValidationDemo.buildingName") }}
+        </label>
+        <input
+          id="valid-building"
+          v-model="buildingName"
+          type="text"
+          :placeholder="t('municipalityValidationDemo.buildingNamePlaceholder')"
+        >
       </div>
       <p v-if="error" class="error-text">{{ error }}</p>
       <p v-else-if="resolvedCode" class="ok-text">
