@@ -90,5 +90,9 @@
     "townAddressPlaceholder": "例: 丸の内1-1-1",
     "buildingName": "建物名",
     "buildingNamePlaceholder": "例: ○○ビル 3F"
+  },
+  "collapseBox": {
+    "expand": "続きを表示",
+    "collapse": "折りたたむ"
   }
 }
