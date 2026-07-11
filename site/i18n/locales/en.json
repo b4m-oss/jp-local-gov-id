@@ -85,6 +85,10 @@
     "needPrefecture": "Please select a prefecture",
     "needName": "Please enter a municipality name",
     "invalid": "This municipality name does not exist",
-    "valid": "Valid (code: {code})"
+    "valid": "Valid (code: {code})",
+    "townAddress": "Town / street address",
+    "townAddressPlaceholder": "e.g. Marunouchi 1-1-1",
+    "buildingName": "Building name",
+    "buildingNamePlaceholder": "e.g. Foo Building 3F"
   }
 }
