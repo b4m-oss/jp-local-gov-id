@@ -52,7 +52,8 @@ const client = await createLocalGovClient({
 });
 ```
 
-- When `url` is set, fetched files are cached in localStorage (key = file URL, TTL 1 year)
+- When `url` is set, fetched files are cached in localStorage by default (key = file URL)
+- Disable with `cache: false`; set TTL via `cacheTtlSeconds` (seconds; default 1 year = `31536000`)
 - Exception: municipality JSON loaded by **nationwide** string search is kept in memory only (not written to localStorage)
 - Environments without localStorage (e.g. Node) skip caching
 - String search normalizes hiragana / fullwidth kana to halfwidth kana (`matchField` default: `"both"`)
