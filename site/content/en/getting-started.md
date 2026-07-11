@@ -5,7 +5,14 @@ description: Overview and next steps for jp-local-gov-id
 
 # Getting started
 
-`@b4moss/jp-local-gov-id` is a JavaScript API for Japan’s nationwide local government codes. Data ships separately as `@b4moss/jp-local-gov-id-data` (split JSON). On init it loads only the index and prefectures; municipalities are lazy-loaded per prefecture.
+`jp-local-gov-id` is an npm package for working with Japan’s nationwide local government codes from JavaScript.
+
+It is split into two packages:
+
+- `@b4moss/jp-local-gov-id`: the application (API)
+- `@b4moss/jp-local-gov-id-data`: local government data
+
+See [Usage](/en/usage) for details.
 
 ## Next steps
 

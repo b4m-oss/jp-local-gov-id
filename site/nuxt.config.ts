@@ -18,7 +18,12 @@ const dataVersion = readPackageVersion(
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ["@nuxt/content", "@nuxtjs/i18n", "@nuxtjs/color-mode"],
+  modules: [
+    "@nuxt/content",
+    "@nuxtjs/i18n",
+    "@nuxtjs/color-mode",
+    "@nuxt/scripts",
+  ],
   devtools: { enabled: true },
   compatibilityDate: "2024-04-03",
   css: ["~/assets/css/main.css"],
@@ -26,6 +31,13 @@ export default defineNuxtConfig({
     public: {
       appVersion,
       dataVersion,
+    },
+  },
+  // GA4: set NUXT_PUBLIC_SCRIPTS_GOOGLE_ANALYTICS_ID=G-XXXXXXXX (build-time for SSG).
+  // Empty / unset → analytics stays disabled (see plugins/google-analytics.client.ts).
+  scripts: {
+    registry: {
+      googleAnalytics: {},
     },
   },
   colorMode: {
