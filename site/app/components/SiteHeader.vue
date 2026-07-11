@@ -1,6 +1,9 @@
 <script setup lang="ts">
 const { t, locale, locales, setLocale } = useI18n();
 const localePath = useLocalePath();
+const { open, toggle } = useSidebar();
+
+const githubUrl = "https://github.com/b4m-oss/jp-local-gov-id";
 
 const selected = computed({
   get: () => locale.value,
@@ -13,31 +16,54 @@ const selected = computed({
 <template>
   <header class="header">
     <div class="header-inner">
+      <button
+        type="button"
+        class="menu-btn"
+        :aria-expanded="open"
+        :aria-label="t('nav.menu')"
+        @click="toggle"
+      >
+        <span class="menu-icon" aria-hidden="true" />
+      </button>
       <NuxtLink :to="localePath('/')" class="brand">
         jp-local-gov-id
       </NuxtLink>
-      <nav class="nav" aria-label="Primary">
-        <NuxtLink :to="localePath('/')">{{ t("nav.home") }}</NuxtLink>
-        <NuxtLink :to="localePath('/getting-started')">
-          {{ t("nav.gettingStarted") }}
-        </NuxtLink>
-        <NuxtLink :to="localePath('/api')">{{ t("nav.api") }}</NuxtLink>
-        <NuxtLink :to="localePath('/playground')">
-          {{ t("nav.playground") }}
-        </NuxtLink>
-      </nav>
-      <label class="lang">
-        <span class="sr-only">{{ t("nav.language") }}</span>
-        <select v-model="selected">
-          <option
-            v-for="item in locales"
-            :key="item.code"
-            :value="item.code"
+      <div class="header-actions">
+        <ColorModeToggle />
+        <label class="lang">
+          <span class="sr-only">{{ t("nav.language") }}</span>
+          <select v-model="selected">
+            <option
+              v-for="item in locales"
+              :key="item.code"
+              :value="item.code"
+            >
+              {{ item.name }}
+            </option>
+          </select>
+        </label>
+        <a
+          class="github-link"
+          :href="githubUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          :aria-label="t('nav.github')"
+          :title="t('nav.github')"
+        >
+          <svg
+            class="github-icon"
+            viewBox="0 0 16 16"
+            width="20"
+            height="20"
+            aria-hidden="true"
           >
-            {{ item.name }}
-          </option>
-        </select>
-      </label>
+            <path
+              fill="currentColor"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"
+            />
+          </svg>
+        </a>
+      </div>
     </div>
   </header>
 </template>
@@ -46,20 +72,62 @@ const selected = computed({
 .header {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 30;
   height: var(--header-height);
   backdrop-filter: blur(10px);
-  background: color-mix(in srgb, var(--color-bg) 82%, white);
+  background: color-mix(in srgb, var(--color-bg) 82%, var(--color-surface));
   border-bottom: 1px solid var(--color-border);
 }
 
 .header-inner {
   height: 100%;
-  width: min(100% - 2rem, 64rem);
-  margin: 0 auto;
+  width: 100%;
+  padding: 0 1rem;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
+}
+
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.35rem;
+  background: var(--color-surface);
+  cursor: pointer;
+  padding: 0;
+}
+
+.menu-icon,
+.menu-icon::before,
+.menu-icon::after {
+  display: block;
+  width: 1rem;
+  height: 2px;
+  background: var(--color-ink);
+  border-radius: 1px;
+}
+
+.menu-icon {
+  position: relative;
+}
+
+.menu-icon::before,
+.menu-icon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.menu-icon::before {
+  top: -5px;
+}
+
+.menu-icon::after {
+  top: 5px;
 }
 
 .brand {
@@ -68,29 +136,17 @@ const selected = computed({
   color: var(--color-ink);
   text-decoration: none;
   white-space: nowrap;
+  margin-right: auto;
 }
 
 .brand:hover {
   color: var(--color-accent);
 }
 
-.nav {
+.header-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem 1rem;
-  flex: 1;
-}
-
-.nav a {
-  color: var(--color-muted);
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.nav a:hover,
-.nav a.router-link-active {
-  color: var(--color-ink);
+  align-items: center;
+  gap: 0.65rem;
 }
 
 .lang select {
@@ -100,6 +156,23 @@ const selected = computed({
   border: 1px solid var(--color-border);
   border-radius: 0.35rem;
   background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.35rem;
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.github-link:hover {
+  color: var(--color-ink);
+  background: var(--color-accent-soft);
 }
 
 .sr-only {
@@ -113,19 +186,13 @@ const selected = computed({
   border: 0;
 }
 
-@media (max-width: 640px) {
-  .header {
-    height: auto;
+@media (min-width: 900px) {
+  .menu-btn {
+    display: none;
   }
 
   .header-inner {
-    flex-wrap: wrap;
-    padding: 0.75rem 0;
-  }
-
-  .nav {
-    order: 3;
-    width: 100%;
+    padding: 0 1.25rem;
   }
 }
 </style>

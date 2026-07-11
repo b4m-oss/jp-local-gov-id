@@ -4,7 +4,7 @@
 
 日本の全国地方公共団体コードを扱うモノレポです（npm workspaces）。
 
-**ドキュメント / Playground:** _（初回 Netlify デプロイ後に URL を記載）_
+**ドキュメント / Playground:** [https://jplocalgovid.netlify.app/](https://jplocalgovid.netlify.app/)
 
 | パッケージ | 説明 | バージョン |
 |------------|------|------------|

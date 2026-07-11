@@ -24,6 +24,9 @@ const client = await createLocalGovClient({ data: dataset });
 await client.getByCode("131016"); // 千代田区
 ```
 
-- [はじめに](/ja/getting-started) — インストールと使い方
+- [はじめに](/ja/getting-started) — 概要と次のステップ
+- [インストール](/ja/installation) — パッケージの入れ方
+- [使い方](/ja/usage) — クライアントの初期化と基本操作
 - [API](/ja/api) — 公開メソッド一覧
+- [サンプル](/ja/examples) — 利用例
 - [Playground](/ja/playground) — ブラウザで試す

@@ -6,10 +6,29 @@
   --color-border: #d8dee6;
   --color-accent: #0f6e56;
   --color-accent-soft: #e6f4ef;
+  --color-accent-hover: #0a5441;
+  --color-error: #a32020;
+  --color-bg-glow-1: #dceee8;
+  --color-bg-glow-2: #e8eef5;
   --font-sans: "IBM Plex Sans", "Hiragino Sans", "Noto Sans JP", sans-serif;
   --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
   --max-width: 52rem;
   --header-height: 3.5rem;
+  --sidebar-width: 15.5rem;
+}
+
+.dark {
+  --color-bg: #0f1419;
+  --color-surface: #1a222c;
+  --color-ink: #e8eef4;
+  --color-muted: #9aa8b5;
+  --color-border: #2c3846;
+  --color-accent: #3dba96;
+  --color-accent-soft: #16352c;
+  --color-accent-hover: #5fd0ad;
+  --color-error: #f07178;
+  --color-bg-glow-1: #122820;
+  --color-bg-glow-2: #152030;
 }
 
 *,
@@ -19,7 +38,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 body {
@@ -27,8 +46,8 @@ body {
   font-family: var(--font-sans);
   color: var(--color-ink);
   background:
-    radial-gradient(ellipse 80% 50% at 100% -20%, #dceee8 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at -10% 10%, #e8eef5 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 100% -20%, var(--color-bg-glow-1) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at -10% 10%, var(--color-bg-glow-2) 0%, transparent 50%),
     var(--color-bg);
   line-height: 1.6;
 }
@@ -40,7 +59,7 @@ a {
 }
 
 a:hover {
-  color: #0a5441;
+  color: var(--color-accent-hover);
 }
 
 code,
@@ -77,11 +96,25 @@ pre code {
   flex-direction: column;
 }
 
+.site-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}
+
+.site-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .site-main {
   flex: 1;
   width: min(100% - 2rem, var(--max-width));
   margin: 0 auto;
-  padding: 2rem 0 4rem;
+  padding: 2rem 0 3rem;
 }
 
 .prose :where(h1, h2, h3) {
@@ -164,7 +197,7 @@ pre code {
 
 .field input:focus,
 .field select:focus {
-  outline: 2px solid color-mix(in srgb, var(--color-accent) 35%, white);
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   border-color: var(--color-accent);
 }
 
@@ -180,7 +213,7 @@ pre code {
 }
 
 .btn:hover {
-  background: #0a5441;
+  background: var(--color-accent-hover);
 }
 
 .btn:disabled {
@@ -206,5 +239,5 @@ pre code {
 }
 
 .error-text {
-  color: #a32020;
+  color: var(--color-error);
 }

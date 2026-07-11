@@ -2,9 +2,20 @@
   "nav": {
     "home": "ホーム",
     "gettingStarted": "はじめに",
+    "installation": "インストール",
+    "usage": "使い方",
     "api": "API",
+    "examples": "サンプル",
     "playground": "Playground",
-    "language": "言語"
+    "language": "言語",
+    "menu": "メニュー",
+    "github": "GitHub"
+  },
+  "theme": {
+    "label": "テーマ",
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム"
   },
   "playground": {
     "title": "Playground",

@@ -1,66 +1,17 @@
 ---
 title: Getting started
-description: Install and minimal usage
+description: Overview and next steps for jp-local-gov-id
 ---
 
 # Getting started
 
-## Install
+`@b4moss/jp-local-gov-id` is a JavaScript API for Japan’s nationwide local government codes. Data ships separately as `@b4moss/jp-local-gov-id-data` (split JSON). On init it loads only the index and prefectures; municipalities are lazy-loaded per prefecture.
 
-```bash
-# API + official data
-npm install @b4moss/jp-local-gov-id @b4moss/jp-local-gov-id-data
+## Next steps
 
-# API only (fetch from a versioned index URL)
-npm install @b4moss/jp-local-gov-id
-```
+1. [Installation](/en/installation) — install the packages
+2. [Usage](/en/usage) — create a client and call methods
+3. [API](/en/api) — public method reference
+4. [Playground](/en/playground) — try it in the browser
 
-## Minimal example
-
-`createLocalGovClient` is async. Either `data` or `url` (a **versioned URL** to **index.json**) is required.
-
-On init it loads only the index and prefectures; municipalities are lazy-loaded per prefecture.
-
-```ts
-import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
-import dataset from "@b4moss/jp-local-gov-id-data";
-
-const client = await createLocalGovClient({ data: dataset });
-
-client.listPrefectures();
-client.getPrefectureByCode("27"); // Osaka
-await client.getMunicipalityByCode("131016"); // Chiyoda
-await client.searchByText("ちよだ", { prefecture: "13", target: "cities" });
-```
-
-## Try it here
-
-::code-lookup-demo
-::
-
-Fetch from a versioned URL:
-
-```ts
-const client = await createLocalGovClient({
-  url: "https://example.com/jp-local-gov-id-data/0.2.0/index.json",
-});
-```
-
-## Code formats
-
-| Target | Format | Accepted input |
-|--------|--------|----------------|
-| Prefecture | 2-digit half-width digits | With or without zero-padding (`"1"` / `"01"`) |
-| Municipality | 6 digits including check digit | 6 digits is the canonical form |
-
-## Data layout
-
-A single JSON file of all municipalities is not distributed.
-
-| File | Contents |
-|------|----------|
-| `index.json` | Index of paths, `schemaVersion`, `asOf`, etc. |
-| `prefectures.json` | Prefectures only |
-| `prefectures/{code}.json` | Municipalities for that prefecture (e.g. `13.json`) |
-
-See [API](/en/api) and [Playground](/en/playground) for more.
+See [Examples](/en/examples) for a place to collect sample snippets.

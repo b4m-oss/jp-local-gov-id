@@ -24,6 +24,9 @@ const client = await createLocalGovClient({ data: dataset });
 await client.getByCode("131016"); // Chiyoda
 ```
 
-- [Getting started](/en/getting-started) — install and usage
+- [Getting started](/en/getting-started) — overview and next steps
+- [Installation](/en/installation) — how to install the packages
+- [Usage](/en/usage) — client setup and basics
 - [API](/en/api) — public methods
+- [Examples](/en/examples) — usage examples
 - [Playground](/en/playground) — try it in the browser

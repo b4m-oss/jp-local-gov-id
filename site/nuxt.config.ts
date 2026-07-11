@@ -1,16 +1,27 @@
+import { copyFileSync } from "node:fs";
+import { join } from "node:path";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ["@nuxt/content", "@nuxtjs/i18n"],
+  modules: ["@nuxt/content", "@nuxtjs/i18n", "@nuxtjs/color-mode"],
   devtools: { enabled: true },
   compatibilityDate: "2024-04-03",
   css: ["~/assets/css/main.css"],
+  colorMode: {
+    preference: "system",
+    fallback: "light",
+    classSuffix: "",
+  },
   content: {
     // Avoid better-sqlite3 native bindings on Netlify CI (Node 22+)
     experimental: { sqliteConnector: "native" },
     build: {
       markdown: {
         highlight: {
-          theme: "github-dark",
+          theme: {
+            default: "github-light",
+            dark: "github-dark",
+          },
         },
       },
     },
@@ -44,11 +55,32 @@ export default defineNuxtConfig({
       optimizeTranslationDirective: false,
     },
   },
+  // public/index.html would shadow `/` in `nuxt dev` and block Nitro middleware.
+  // Copy the static locale redirect page into the generate output instead.
+  hooks: {
+    "nitro:build:public-assets"(nitro) {
+      copyFileSync(
+        join(nitro.options.rootDir, "locale-root.html"),
+        join(nitro.options.output.publicDir, "index.html"),
+      );
+    },
+  },
   nitro: {
     preset: "static",
     prerender: {
       crawlLinks: true,
-      routes: ["/ja", "/en", "/ja/playground", "/en/playground"],
+      routes: [
+        "/ja",
+        "/en",
+        "/ja/playground",
+        "/en/playground",
+        "/ja/installation",
+        "/en/installation",
+        "/ja/usage",
+        "/en/usage",
+        "/ja/examples",
+        "/en/examples",
+      ],
     },
   },
 })

@@ -2,9 +2,20 @@
   "nav": {
     "home": "Home",
     "gettingStarted": "Getting started",
+    "installation": "Installation",
+    "usage": "Usage",
     "api": "API",
+    "examples": "Examples",
     "playground": "Playground",
-    "language": "Language"
+    "language": "Language",
+    "menu": "Menu",
+    "github": "GitHub"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "playground": {
     "title": "Playground",

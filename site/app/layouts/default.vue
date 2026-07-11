@@ -1,8 +1,14 @@
 <template>
   <div class="site-shell">
     <SiteHeader />
-    <main class="site-main">
-      <slot />
-    </main>
+    <div class="site-body">
+      <DocsSidebar />
+      <div class="site-content">
+        <main class="site-main">
+          <slot />
+        </main>
+        <SiteFooter />
+      </div>
+    </div>
   </div>
 </template>
