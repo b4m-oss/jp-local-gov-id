@@ -586,4 +586,29 @@ describe("createLocalGovClient url + cache + lazy load", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("skips localStorage when cache is false", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+
+    const c = await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(c.listPrefectures()).toHaveLength(47);
+    expect(store.size).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(store.size).toBe(0);
+  });
+
+  it("uses custom cacheTtlMs for expiresAt", async () => {
+    stubLocalStorage();
+    stubFetch(fileMap());
+    const ttlMs = 1000;
+
+    await createLocalGovClient({ url: indexUrl, cacheTtlMs: ttlMs });
+    const cached = JSON.parse(store.get(indexUrl)!);
+    expect(cached.expiresAt).toBeGreaterThan(Date.now());
+    expect(cached.expiresAt).toBeLessThanOrEqual(Date.now() + ttlMs + 100);
+    expect(cached.expiresAt).toBeLessThan(Date.now() + CACHE_TTL_MS / 2);
+  });
 });
