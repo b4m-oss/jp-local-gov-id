@@ -16,6 +16,8 @@ description: 住所入力・市区町村バリデーションの利用例
 ::address-input-demo
 ::
 
+:::collapse-box
+
 ```html
 <label for="prefecture">都道府県</label>
 <select id="prefecture">
@@ -85,12 +87,16 @@ prefSelect.addEventListener("change", loadMunicipalities);
 modeSelect.addEventListener("change", loadMunicipalities);
 ```
 
+:::
+
 ## 市区町村バリデーション
 
 都道府県を選んだうえで市区町村名を入力し、実在するか検証します。正式名称に一致しない場合はエラーになります（`getLocalGovCodeByName`）。
 
 ::municipality-validation-demo
 ::
+
+:::collapse-box
 
 ```html
 <label for="prefecture">都道府県</label>
@@ -137,3 +143,5 @@ document.querySelector("#validate").addEventListener("click", async () => {
   }
 });
 ```
+
+:::
