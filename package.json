@@ -13,5 +13,5 @@
     "test": "npm run test -w @b4moss/jp-local-gov-id",
     "generate": "npm run generate -w jp-local-gov-id-scripts"
   },
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

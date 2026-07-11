@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@b4moss/jp-local-gov-id playground</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+        line-height: 1.5;
+      }
+      body {
+        margin: 0;
+        padding: 1.5rem;
+        max-width: 52rem;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem;
+      }
+      p.note {
+        margin: 0 0 1.25rem;
+        opacity: 0.75;
+        font-size: 0.9rem;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        align-items: end;
+      }
+      .field {
+        flex: 1 1 12rem;
+      }
+      input[type="text"],
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.45rem 0.6rem;
+      }
+      button {
+        padding: 0.45rem 0.9rem;
+        cursor: pointer;
+      }
+      pre {
+        margin: 0;
+        padding: 1rem;
+        overflow: auto;
+        border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+        border-radius: 0.4rem;
+        background: color-mix(in srgb, CanvasText 6%, Canvas);
+        min-height: 8rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .status {
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+      }
+      .error {
+        color: #c62828;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>@b4moss/jp-local-gov-id playground</h1>
+    <p class="note">
+      API は esm.sh、データは jsDelivr 上の版付き <code>index.json</code> を
+      <code>createLocalGov({ url })</code> で読みます。
+    </p>
+
+    <div class="row">
+      <div class="field">
+        <label for="query">検索語（部分一致）</label>
+        <input id="query" type="text" value="中央" />
+      </div>
+      <div class="field">
+        <label for="pref">都道府県絞り込み（任意）</label>
+        <select id="pref">
+          <option value="">（全国）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="target">target</label>
+        <select id="target">
+          <option value="all">all</option>
+          <option value="prefectures">prefectures</option>
+          <option value="cities" selected>cities</option>
+        </select>
+      </div>
+      <button id="run" type="button">search</button>
+    </div>
+
+    <p id="status" class="status">初期化中…</p>
+    <pre id="out">[]</pre>
+
+    <script type="module">
+      import { createLocalGov } from "https://esm.sh/@b4moss/jp-local-gov-id@0.1.0";
+
+      // 版付き URL（jsDelivr / npm パッケージ実体）
+      const DATA_BASE =
+        "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0";
+      const INDEX_URL = `${DATA_BASE}/index.json`;
+
+      const statusEl = document.getElementById("status");
+      const outEl = document.getElementById("out");
+      const prefEl = document.getElementById("pref");
+      const queryEl = document.getElementById("query");
+      const targetEl = document.getElementById("target");
+      const runEl = document.getElementById("run");
+
+      let client;
+
+      try {
+        client = await createLocalGov({ url: INDEX_URL });
+        for (const p of client.listPrefectures()) {
+          const opt = document.createElement("option");
+          opt.value = p.code;
+          opt.textContent = `${p.code} ${p.name}`;
+          prefEl.append(opt);
+        }
+        statusEl.textContent = `ready — index: ${INDEX_URL}`;
+      } catch (error) {
+        statusEl.classList.add("error");
+        statusEl.textContent = String(error);
+        throw error;
+      }
+
+      async function runSearch() {
+        statusEl.classList.remove("error");
+        statusEl.textContent = "searching…（全国検索は初回だけ県別 JSON を並列取得します）";
+        try {
+          const options = {
+            target: targetEl.value,
+          };
+          if (prefEl.value) options.prefecture = prefEl.value;
+
+          const results = await client.search(queryEl.value, options);
+          outEl.textContent = JSON.stringify(results, null, 2);
+          statusEl.textContent = `${results.length} hit(s)`;
+        } catch (error) {
+          statusEl.classList.add("error");
+          statusEl.textContent = String(error);
+          outEl.textContent = "[]";
+        }
+      }
+
+      runEl.addEventListener("click", () => {
+        void runSearch();
+      });
+      queryEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") void runSearch();
+      });
+    </script>
+  </body>
+</html>

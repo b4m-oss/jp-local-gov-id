@@ -1,27 +1,29 @@
 # jp-local-gov-id
 
-日本の全国地方公共団体コードを扱うモノレポです（npm workspaces）。
+[日本語](./README_ja.md)
 
-| パッケージ | 説明 | バージョン |
-|------------|------|------------|
-| [`@b4moss/jp-local-gov-id`](./packages/jp-local-gov-id) | JS API（データ非同梱・遅延ロード） | 0.1.0 |
-| [`@b4moss/jp-local-gov-id-data`](./packages/jp-local-gov-id-data) | 分割データ JSON | 0.1.0 |
+A monorepo for Japan’s nationwide local government codes (npm workspaces).
 
-## インストール（利用側）
+| Package | Description | Version |
+|---------|-------------|---------|
+| [`@b4moss/jp-local-gov-id`](./packages/jp-local-gov-id) | JS API (data not bundled; lazy-loaded) | 0.1.0 |
+| [`@b4moss/jp-local-gov-id-data`](./packages/jp-local-gov-id-data) | Split JSON datasets | 0.1.0 |
+
+## Install (consumers)
 
 ```bash
-# API + 公式データ（npm から import して渡す場合）
+# API + official data (import from npm and pass in)
 npm install @b4moss/jp-local-gov-id @b4moss/jp-local-gov-id-data
 
-# API のみ（版付きインデックス URL から取得する場合）
+# API only (fetch from a versioned index URL)
 npm install @b4moss/jp-local-gov-id
 ```
 
-## 使い方
+## Usage
 
-`createLocalGov` は async です。`data` または `url`（**index.json** の版付き URL）のいずれかが必須です。
+`createLocalGov` is async. Either `data` or `url` (a **versioned URL** to **index.json**) is required.
 
-初期化ではインデックスと都道府県のみを読み込み、市区町村は県単位で遅延ロードします。全国対象の文字列検索では、未ロードの県別 JSON を同時 6 件で取得します。
+On init it loads only the index and prefectures; municipalities are lazy-loaded per prefecture. Nationwide string search fetches unloaded prefecture JSON files with concurrency of 6.
 
 ```ts
 import { createLocalGov } from "@b4moss/jp-local-gov-id";
@@ -31,13 +33,13 @@ const client = await createLocalGov({ data: dataset });
 
 client.listPrefectures();
 client.getPrefectureCode("大阪府"); // "27"
-await client.getMunicipalitiesByPrefecture("13"); // 東京都の市区町村等
-await client.getByCode("131016"); // 千代田区
+await client.getMunicipalitiesByPrefecture("13"); // municipalities in Tokyo, etc.
+await client.getByCode("131016"); // Chiyoda City
 await client.search("中央", { prefecture: "01", target: "cities" });
 await client.getCodeByName("千代田区"); // "131016"
 ```
 
-版付きインデックス URL から取得する場合:
+Fetch from a versioned index URL:
 
 ```ts
 const client = await createLocalGov({
@@ -45,61 +47,61 @@ const client = await createLocalGov({
 });
 ```
 
-- `url` 指定時のみ、取得した各ファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
-- localStorage が無い環境（Node 等）ではキャッシュをスキップします
-- スキーマ不一致・不正 JSON は `LocalGovSchemaError`、ネットワーク / HTTP エラーは通常の fetch エラーです
-- クエリで見つからない・同名衝突の場合は `null` / `[]` を返します（throw しません）
+- When `url` is set, each fetched file is cached in localStorage (key = file URL, TTL 1 year)
+- Environments without localStorage (e.g. Node) skip caching
+- Schema mismatches / invalid JSON raise `LocalGovSchemaError`; network / HTTP failures are normal fetch errors
+- Missing or ambiguous query results return `null` / `[]` (they do not throw)
 
-### データ構成
+### Data layout
 
-全市区町村をまとめた単一 JSON は配布しません。
+A single JSON file of all municipalities is not distributed.
 
-| ファイル | 内容 |
-|----------|------|
-| `index.json` | パス・`schemaVersion`・`asOf` などの索引 |
-| `prefectures.json` | 都道府県のみ |
-| `prefectures/{code}.json` | 当該県の市区町村（例: `13.json`） |
+| File | Contents |
+|------|----------|
+| `index.json` | Index of paths, `schemaVersion`, `asOf`, etc. |
+| `prefectures.json` | Prefectures only |
+| `prefectures/{code}.json` | Municipalities for that prefecture (e.g. `13.json`) |
 
-### 自前データ配信について
+### Hosting your own data
 
-自前で JSON を配信する場合も、公式と同様に**バージョン付き URL**と同等の分割ファイル構成で提供してください。可用性・CORS・内容の正しさ・URL 運用などについて、当パッケージ開発者は一切の責任を負いません。CORS は配信側で許可してください。
+If you host the JSON yourself, serve it with a **versioned URL** and the same split-file layout as the official package. The package maintainers take no responsibility for availability, CORS, correctness, or URL management. Enable CORS on the hosting side.
 
-## コード形式
+## Code formats
 
-| 対象 | 形式 | 入力時の許容 |
-|------|------|--------------|
-| 都道府県 | 半角数字 2 桁 | 0 埋めの有無どちらも可（`"1"` / `"01"`） |
-| 市区町村 | チェックデジット込みの 6 桁 | 6 桁を正式とする |
+| Target | Format | Accepted input |
+|--------|--------|----------------|
+| Prefecture | 2-digit half-width digits | With or without zero-padding (`"1"` / `"01"`) |
+| Municipality | 6 digits including check digit | 6 digits is the canonical form |
 
-## 開発（モノレポ）
+## Development (monorepo)
 
 ```bash
 npm install
-npm run generate   # Excel → packages/jp-local-gov-id-data/ 分割 JSON
+npm run generate   # Excel → split JSON under packages/jp-local-gov-id-data/
 npm test
 npm run build
 ```
 
-## バージョン方針
+## Versioning
 
-[Semantic Versioning](https://semver.org/) に従います。
+Follows [Semantic Versioning](https://semver.org/).
 
-| 変更の種類 | バージョン |
-|------------|------------|
-| バグ修正 | **patch** |
-| 市町村合併などに伴うデータ更新 | データパッケージの **minor** |
-| API の破壊的変更（ver 0.x） | **minor** |
-| API の破壊的変更（ver 1.x 以降） | **major** |
+| Change | Version bump |
+|--------|--------------|
+| Bug fixes | **patch** |
+| Data updates (e.g. municipal mergers) | data package **minor** |
+| Breaking API changes (0.x) | **minor** |
+| Breaking API changes (1.x+) | **major** |
 
-## データについて
+## About the data
 
-- 時点: 令和 6 年 1 月 1 日（R6.1.1）
-- ソースファイル: `resources/000925835.xlsx`
-- 廃止・合併済みの団体は含みません（現行のみ）
-- API パッケージには JSON を同梱しません（`@b4moss/jp-local-gov-id-data` または URL で渡してください）
+- As of: 1 January 2024 (R6.1.1)
+- Source file: `resources/000925835.xlsx`
+- Abolished / merged entities are not included (current only)
+- The API package does not ship JSON (pass `@b4moss/jp-local-gov-id-data` or a URL)
 
-詳細は [docs/main.md](./docs/main.md) を参照してください。
+See [docs/main.md](./docs/main.md) for details.
 
-----
+## License
 
-以上
+MIT

@@ -12,7 +12,10 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README_ja.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "vite build --watch",
@@ -25,7 +28,7 @@
     "municipality",
     "prefecture"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@b4moss/jp-local-gov-id-data": "0.1.0",
     "typescript": "^5.8.3",
