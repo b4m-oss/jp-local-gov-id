@@ -33,6 +33,23 @@
 | `prefecture` | なし | 都道府県コードまたは名称で絞り込み |
 | `target` | `"all"` | `"all"` \| `"prefectures"` \| `"cities"` |
 | `matchField` | `"both"` | `"name"` \| `"nameKana"` \| `"both"` |
+| `designatedCity` | `"both"` | `"both"` \| `"city"` \| `"ward"`（政令指定都市の市/区フィルタ） |
+
+### `DesignatedCityMode` / `ListMunicipalitiesOptions`
+
+| 値 | 意味 |
+|----|------|
+| `"both"` | 政令市本体と行政区の両方（既定・現行どおり） |
+| `"city"` | 政令市本体のみ（行政区を除外） |
+| `"ward"` | 行政区のみ（政令市本体を除外） |
+
+判定（データフィールド追加なし）:
+
+1. 政令市区: `name` が `/^.+市.+区$/`（例: `札幌市中央区`）
+2. 政令市本体: 上記区から市名プレフィックス（例: `札幌市`）を集め、同名のレコード
+3. 町村・一般市・東京特別区（`千代田区` 等）は全モードで残す
+
+適用 API: `listMunicipalitiesByPrefecture` / `searchByText` / `getLocalGovCodeByName`
 
 文字列比較前にクエリ・データ双方へ正規化を適用する:
 
@@ -81,10 +98,11 @@
 - 都道府県名の完全一致 → 2 桁コード
 - 見つからなければ `null`
 
-##### `listMunicipalitiesByPrefecture(pref)` → `Promise<LocalGov[]>`
+##### `listMunicipalitiesByPrefecture(pref, options?)` → `Promise<LocalGov[]>`
 
 - `pref`: コードまたは名称
-- 配下の市区町村（市本体・区を含む）
+- `options.designatedCity`: `"both"` \| `"city"` \| `"ward"`（既定 `"both"`）
+- 配下の市区町村（市本体・区を含む。`designatedCity` でフィルタ可）
 - 未ロードなら当該県 JSON を取得（キャッシュ可）
 - 不正な `pref` → `[]`
 
@@ -103,7 +121,7 @@
 ##### `searchByText(text, options?)` → `Promise<LocalGov[]>`
 
 - **部分一致**（正規化後 `includes`）
-- `target` / `prefecture` / `matchField` で対象を絞る
+- `target` / `prefecture` / `matchField` / `designatedCity` で対象を絞る
 - 全国かつ市区町村対象 → 未ロード県を 6 並列で取得（メモリのみ）
 - 都道府県のみ対象 → 追加 fetch なし
 - 不正な `prefecture` → `[]`
@@ -113,6 +131,7 @@
 - **完全一致**（正規化後）
 - ヒットがちょうど 1 件のときだけその `code` を返す
 - 0 件・複数件 → `null`
+- `designatedCity` で候補をフィルタしてから一致判定
 - ロード／キャッシュ方針は `searchByText` と同じ
 
 #### その他の export
@@ -123,7 +142,7 @@
 | `LOCAL_GOV_SCHEMA_VERSION` | const | 現行スキーマ版（`1`） |
 | `MUNICIPALITY_FETCH_CONCURRENCY` | const | 全国検索の並列度（`6`） |
 
-型: `LocalGov`, `LocalGovClient`, `CreateLocalGovOptions`, `SearchOptions`, `SearchTarget`, `LocalGovDataset`, `LocalGovIndexFile`, `LocalGovPrefecturesFile`, `LocalGovMunicipalitiesFile`, `LocalGovDataFile`（deprecated）
+型: `LocalGov`, `LocalGovClient`, `CreateLocalGovOptions`, `SearchOptions`, `SearchTarget`, `MatchField`, `DesignatedCityMode`, `ListMunicipalitiesOptions`, `LocalGovDataset`, `LocalGovIndexFile`, `LocalGovPrefecturesFile`, `LocalGovMunicipalitiesFile`, `LocalGovDataFile`（deprecated）
 
 旧名（`createLocalGov`, `getPrefectureCode`, `getMunicipalitiesByPrefecture`, `search`, `getCodeByName`）に互換エイリアスは置かない。
 
@@ -147,3 +166,4 @@
 |------|------|
 | 2026-07-11 | 現状 API を書き出し |
 | 2026-07-11 | 整理案を確定（改名 + カナ検索 `matchField`） |
+| 2026-07-11 | `designatedCity` オプション（`both` / `city` / `ward`）を追加 |
