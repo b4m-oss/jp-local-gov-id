@@ -35,7 +35,7 @@ JavaScript で、現在の都道府県・市区町村の地方自治体コード
 | 全市区町村一覧 API | なし。県別取得・検索結果として返す |
 | 全市区町村を1ファイルにまとめた配布 | **しない**（県別に分割する） |
 | 名前検索 | 部分一致（`search`）。必要なら未ロードの県別データを取得してから検索 |
-| 政令指定都市 | 市本体も返し、区も 1 地方公共団体として返す |
+| 政令指定都市 | 市本体も返し、区も 1 地方公共団体として返す。`designatedCity` オプションで市のみ / 区のみ / 両方を選べる（既定: `"both"`）。東京特別区は対象外 |
 | 政令市区の `name` | 元データどおり（例: `札幌市中央区`）。区名のみへの正規化はしない |
 | カナ | `LocalGov` に半角カナを含める |
 | 廃止・合併済みコード | 返さない（現行のみ） |
@@ -169,10 +169,19 @@ type LocalGov = {
 
 type SearchTarget = "all" | "prefectures" | "cities"
 
+/** 政令指定都市の市本体 / 行政区の出し分け（東京特別区は対象外） */
+type DesignatedCityMode = "both" | "city" | "ward"
+// both = 市本体+区（既定） / city = 市本体のみ / ward = 区のみ
+
+type ListMunicipalitiesOptions = {
+  designatedCity?: DesignatedCityMode  // 既定: "both"
+}
+
 type SearchOptions = {
   prefecture?: string
   target?: SearchTarget       // 既定: "all"
   matchField?: "name" | "nameKana" | "both"  // 既定: "both"
+  designatedCity?: DesignatedCityMode        // 既定: "both"
 }
 
 type CreateLocalGovOptions =
@@ -189,7 +198,10 @@ type LocalGovClient = {
   getPrefectureCodeByName(name: string): string | null
 
   /** 未ロードなら県別 JSON を取得してから返す */
-  listMunicipalitiesByPrefecture(pref: string): Promise<LocalGov[]>
+  listMunicipalitiesByPrefecture(
+    pref: string,
+    options?: ListMunicipalitiesOptions,
+  ): Promise<LocalGov[]>
   getMunicipalityByCode(code: string): Promise<LocalGov | null>
   getByCode(code: string): Promise<LocalGov | null>
   searchByText(text: string, options?: SearchOptions): Promise<LocalGov[]>
@@ -211,13 +223,16 @@ client.getPrefectureCodeByName("大阪府")
 client.getPrefectureByCode("27")
 
 await client.listMunicipalitiesByPrefecture("大阪府")
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "city" }) // 政令市本体のみ
 await client.getMunicipalityByCode("271004")
 await client.getByCode("271004")
 await client.searchByText("堺") // 全国対象なら未ロード県を 6 並列で取得してから検索
 await client.searchByText("中央", { prefecture: "01", target: "cities" })
+await client.searchByText("札幌", { prefecture: "01", target: "cities", designatedCity: "ward" })
 await client.searchByText("東京", { target: "prefectures" }) // 都道府県のみなら追加 fetch 不要
 await client.searchByText("ちよだ", { target: "cities" }) // カナ／ひらがな可
 await client.getLocalGovCodeByName("千代田区")
+await client.getLocalGovCodeByName("札幌市", { designatedCity: "city" })
 ```
 
 ## 情報のソース
