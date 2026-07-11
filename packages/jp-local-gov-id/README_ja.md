@@ -28,12 +28,15 @@ client.listPrefectures();
 client.getPrefectureByCode("27");
 client.getPrefectureCodeByName("大阪府"); // "27"
 await client.listMunicipalitiesByPrefecture("13");
+await client.listMunicipalitiesByPrefecture("01", { designatedCity: "city" }); // 政令市本体のみ
 await client.getMunicipalityByCode("131016");
 await client.getByCode("131016");
 await client.searchByText("中央", { prefecture: "01", target: "cities" });
 await client.searchByText("ちよだ", { prefecture: "13", target: "cities" });
 await client.getLocalGovCodeByName("千代田区"); // "131016"
 ```
+
+`designatedCity`（`"both"` | `"city"` | `"ward"`、既定 `"both"`）で、政令指定都市の市本体 / 行政区の出し分けができます。適用 API は `listMunicipalitiesByPrefecture` / `searchByText` / `getLocalGovCodeByName`。東京特別区は対象外です。
 
 版付きインデックス URL から取得する場合:
 
