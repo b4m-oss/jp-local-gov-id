@@ -84,9 +84,22 @@ export type LocalGovDataset = {
     | Promise<LocalGovMunicipalitiesFile | unknown>;
 };
 
+export type CreateLocalGovCacheOptions = {
+  /**
+   * Whether to use localStorage cache for `url` mode.
+   * Default: `true`. Ignored when using `data` (no URL fetch cache).
+   */
+  cache?: boolean;
+  /**
+   * Cache TTL in seconds for `url` mode.
+   * Default: `31536000` (1 year). Ignored when `cache` is `false` or using `data`.
+   */
+  cacheTtlSeconds?: number;
+};
+
 export type CreateLocalGovOptions =
-  | { data: LocalGovDataset | unknown; url?: never }
-  | { url: string; data?: never };
+  | ({ data: LocalGovDataset | unknown; url?: never } & CreateLocalGovCacheOptions)
+  | ({ url: string; data?: never } & CreateLocalGovCacheOptions);
 
 export type LocalGovClient = {
   listPrefectures(): LocalGov[];
