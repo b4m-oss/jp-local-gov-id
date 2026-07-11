@@ -1,0 +1,14 @@
+{
+  "name": "jp-local-gov-id-scripts",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Excel → JSON 生成スクリプト（Node.js 専用・配布対象外）",
+  "type": "module",
+  "scripts": {
+    "generate": "tsx generate.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "xlsx": "^0.18.5"
+  }
+}

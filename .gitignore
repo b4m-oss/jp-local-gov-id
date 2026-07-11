@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Logs / local
+*.log
+*.local
+.DS_Store
+
+# npm pack artifacts
+*.tgz
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+
+resources/**/*.xlsx

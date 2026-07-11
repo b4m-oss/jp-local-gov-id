@@ -1,0 +1,17 @@
+{
+  "name": "jp-local-gov-id-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "jp-local-gov-id monorepo (npm workspaces)",
+  "workspaces": [
+    "packages/*",
+    "scripts"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w jp-local-gov-id",
+    "build": "npm run build -w jp-local-gov-id",
+    "test": "npm run test -w jp-local-gov-id",
+    "generate": "npm run generate -w jp-local-gov-id-scripts"
+  },
+  "license": "UNLICENSED"
+}
