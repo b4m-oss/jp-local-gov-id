@@ -96,7 +96,7 @@ npm run build
 ## データについて
 
 - 時点: 令和 6 年 1 月 1 日（R6.1.1）
-- ソースファイル: `resources/000925835.xlsx`
+- ソースファイル: `https://www.soumu.go.jp/denshijiti/code.html`
 - 廃止・合併済みの団体は含みません（現行のみ）
 - API パッケージには JSON を同梱しません（`@b4moss/jp-local-gov-id-data` または URL で渡してください）
 
