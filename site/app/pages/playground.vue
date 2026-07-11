@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { LocalGov, SearchTarget } from "@b4moss/jp-local-gov-id";
+import type { ConsoleEntry } from "~/components/playground/runPlaygroundCode";
+import type { PlaygroundTemplateId } from "~/components/playground/templates";
+import {
+  PLAYGROUND_TEMPLATES,
+  getTemplateById,
+} from "~/components/playground/templates";
 
 const { t } = useI18n();
 
@@ -8,185 +13,133 @@ useSeoMeta({
   description: () => t("playground.description"),
 });
 
-const ready = ref(false);
-const initError = ref<string | null>(null);
-const prefectures = ref<LocalGov[]>([]);
+const templateId = ref<PlaygroundTemplateId>("getByCode");
+const code = ref(getTemplateById("getByCode").code);
+const entries = ref<ConsoleEntry[]>([]);
+const running = ref(false);
+const sandboxHost = ref<HTMLElement | null>(null);
 
-const code = ref("131016");
-const codeResult = ref<LocalGov | null | undefined>(undefined);
-const codeError = ref<string | null>(null);
-const codePending = ref(false);
+let abortController: AbortController | null = null;
 
-const query = ref("中央");
-const prefecture = ref("");
-const target = ref<SearchTarget>("cities");
-const searchResults = ref<LocalGov[] | null>(null);
-const searchError = ref<string | null>(null);
-const searchPending = ref(false);
+const PlaygroundEditor = defineAsyncComponent(() =>
+  import("~/components/playground/PlaygroundEditor.vue"),
+);
+const PlaygroundOutput = defineAsyncComponent(() =>
+  import("~/components/playground/PlaygroundOutput.vue"),
+);
 
-onMounted(async () => {
-  try {
-    const client = await useLocalGovClient();
-    prefectures.value = client.listPrefectures();
-    ready.value = true;
-  } catch (e) {
-    initError.value = e instanceof Error ? e.message : String(e);
-  }
-});
-
-async function lookupCode() {
-  codePending.value = true;
-  codeError.value = null;
-  try {
-    const client = await useLocalGovClient();
-    codeResult.value = await client.getByCode(code.value.trim());
-  } catch (e) {
-    codeError.value = e instanceof Error ? e.message : String(e);
-    codeResult.value = undefined;
-  } finally {
-    codePending.value = false;
-  }
+function onTemplateChange() {
+  code.value = getTemplateById(templateId.value).code;
 }
 
-async function runSearch() {
-  searchPending.value = true;
-  searchError.value = null;
+async function run() {
+  if (!import.meta.client || !sandboxHost.value) return;
+
+  abortController?.abort();
+  abortController = new AbortController();
+  const signal = abortController.signal;
+
+  entries.value = [];
+  running.value = true;
+
+  const { runPlaygroundCode, createConsoleEntry } = await import(
+    "~/components/playground/runPlaygroundCode"
+  );
+
   try {
-    const client = await useLocalGovClient();
-    searchResults.value = await client.searchByText(query.value.trim(), {
-      prefecture: prefecture.value || undefined,
-      target: target.value,
+    await runPlaygroundCode({
+      code: code.value,
+      host: sandboxHost.value,
+      signal,
+      onEvent(event) {
+        if (signal.aborted) return;
+        if (event.type === "console") {
+          entries.value = [
+            ...entries.value,
+            createConsoleEntry(event.level, event.args),
+          ];
+        } else if (event.type === "error") {
+          entries.value = [
+            ...entries.value,
+            createConsoleEntry("error", [event.message]),
+          ];
+        }
+      },
     });
   } catch (e) {
-    searchError.value = e instanceof Error ? e.message : String(e);
-    searchResults.value = null;
+    if (signal.aborted) return;
+    const message = e instanceof Error ? e.message : String(e);
+    let display = message;
+    if (message.startsWith("Illegal import:")) {
+      const m = message.match(/Illegal import:\s*"([^"]+)"/);
+      display = t("playground.illegalImport", {
+        source: m?.[1] ?? "?",
+      });
+    }
+    entries.value = [
+      ...entries.value,
+      createConsoleEntry("error", [display]),
+    ];
   } finally {
-    searchPending.value = false;
+    if (!signal.aborted) running.value = false;
   }
 }
+
+onBeforeUnmount(() => {
+  abortController?.abort();
+});
 </script>
 
 <template>
-  <div>
+  <div class="playground-page">
     <header class="intro">
       <h1>{{ t("playground.title") }}</h1>
       <p class="muted">{{ t("playground.description") }}</p>
     </header>
 
-    <p v-if="initError" class="error-text">{{ initError }}</p>
-    <p v-else-if="!ready" class="muted">{{ t("playground.loading") }}</p>
-
-    <template v-else>
-      <section class="panel section">
-        <h2>{{ t("playground.codeLookup") }}</h2>
-        <p class="muted hint">{{ t("playground.codeLookupHint") }}</p>
-        <div class="field">
-          <label for="pg-code">{{ t("playground.query") }}</label>
-          <div class="row">
-            <input
-              id="pg-code"
-              v-model="code"
-              type="text"
-              @keyup.enter="lookupCode"
-            >
-            <button
-              class="btn"
-              type="button"
-              :disabled="codePending"
-              @click="lookupCode"
-            >
-              {{ t("playground.run") }}
-            </button>
-          </div>
-        </div>
-        <h3>{{ t("playground.result") }}</h3>
-        <p v-if="codeError" class="error-text">{{ codeError }}</p>
-        <pre v-else-if="codeResult">{{ JSON.stringify(codeResult, null, 2) }}</pre>
-        <p v-else-if="codeResult === null" class="muted">
-          {{ t("playground.empty") }}
-        </p>
-      </section>
-
-      <section class="panel section">
-        <h2>{{ t("playground.search") }}</h2>
-        <p class="muted hint">{{ t("playground.searchHint") }}</p>
-        <div class="field">
-          <label for="pg-query">{{ t("playground.query") }}</label>
-          <input
-            id="pg-query"
-            v-model="query"
-            type="text"
-            @keyup.enter="runSearch"
-          >
-        </div>
-        <div class="grid">
-          <div class="field">
-            <label for="pg-pref">{{ t("playground.prefecture") }}</label>
-            <select id="pg-pref" v-model="prefecture">
-              <option value="">
-                {{ t("playground.prefectureAll") }}
-              </option>
-              <option
-                v-for="p in prefectures"
-                :key="p.code"
-                :value="p.code"
-              >
-                {{ p.code }} — {{ p.name }}
-              </option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="pg-target">{{ t("playground.target") }}</label>
-            <select id="pg-target" v-model="target">
-              <option value="all">
-                {{ t("playground.targetAll") }}
-              </option>
-              <option value="prefectures">
-                {{ t("playground.targetPrefectures") }}
-              </option>
-              <option value="cities">
-                {{ t("playground.targetCities") }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <button
-          class="btn"
-          type="button"
-          :disabled="searchPending"
-          @click="runSearch"
+    <div class="toolbar panel">
+      <div class="field template-field">
+        <label for="pg-template">{{ t("playground.template") }}</label>
+        <select
+          id="pg-template"
+          v-model="templateId"
+          @change="onTemplateChange"
         >
-          {{ t("playground.run") }}
-        </button>
-        <h3>{{ t("playground.result") }}</h3>
-        <p v-if="searchError" class="error-text">{{ searchError }}</p>
-        <template v-else-if="searchResults">
-          <p v-if="searchResults.length === 0" class="muted">
-            {{ t("playground.empty") }}
-          </p>
-          <div v-else class="table-wrap">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>code</th>
-                  <th>name</th>
-                  <th>nameKana</th>
-                  <th>prefecture</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in searchResults" :key="row.code">
-                  <td><code>{{ row.code }}</code></td>
-                  <td>{{ row.name }}</td>
-                  <td>{{ row.nameKana }}</td>
-                  <td>{{ row.prefectureCode }} {{ row.prefectureName }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </template>
+          <option
+            v-for="tmpl in PLAYGROUND_TEMPLATES"
+            :key="tmpl.id"
+            :value="tmpl.id"
+          >
+            {{ t(`playground.templates.${tmpl.labelKey}`) }}
+          </option>
+        </select>
+      </div>
+      <button
+        class="btn"
+        type="button"
+        :disabled="running"
+        @click="run"
+      >
+        {{ t("playground.run") }}
+      </button>
+    </div>
+
+    <div class="workspace">
+      <section class="pane editor-pane">
+        <ClientOnly>
+          <PlaygroundEditor v-model="code" />
+          <template #fallback>
+            <pre class="code-fallback">{{ code }}</pre>
+          </template>
+        </ClientOnly>
       </section>
-    </template>
+      <section class="pane output-pane">
+        <PlaygroundOutput :entries="entries" :running="running" />
+      </section>
+    </div>
+
+    <div ref="sandboxHost" class="sandbox-host" aria-hidden="true" />
+
     <DocsPager />
   </div>
 </template>
@@ -199,50 +152,64 @@ async function runSearch() {
 }
 
 .intro {
-  margin-bottom: 1.5rem;
-}
-
-.section {
   margin-bottom: 1.25rem;
 }
 
-.section h2 {
-  margin: 0 0 0.35rem;
-  font-size: 1.2rem;
-}
-
-.section h3 {
-  margin: 1rem 0 0.5rem;
-  font-size: 1rem;
-}
-
-.hint {
-  margin: 0 0 1rem;
-  font-size: 0.9rem;
-}
-
-.row {
+.toolbar {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
 }
 
-.row input {
+.template-field {
+  flex: 1;
+  min-width: 12rem;
+  margin-bottom: 0;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  min-height: 28rem;
+}
+
+.pane {
+  min-width: 0;
+  min-height: 28rem;
+}
+
+.editor-pane,
+.output-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-pane > :deep(.editor-root),
+.output-pane > :deep(.output) {
   flex: 1;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+.code-fallback {
+  margin: 0;
+  min-height: 20rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  white-space: pre-wrap;
 }
 
-.table-wrap {
-  overflow-x: auto;
-}
-
-@media (max-width: 640px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+.sandbox-host {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 </style>
