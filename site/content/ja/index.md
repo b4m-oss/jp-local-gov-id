@@ -33,6 +33,19 @@ await client.getByCode("131016"); // 千代田区
 
 詳しくは[使い方](./usage.md)を参照してください。
 
+## 試してみる
+
+ブラウザ上でコード解決と文字列検索を試せます。自由にコードを書く場合は [Playground](/ja/playground) へ。
+
+### コード解決
+
+::code-lookup-demo
+::
+
+### 文字列検索
+
+::search-demo
+::
 
 ## パッケージ内容
 

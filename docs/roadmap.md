@@ -2,49 +2,31 @@
 
 仕様書（[main.md](./main.md)）に基づく開発ステップ。
 
-## ~v0.2.0
+## ~v0.4.2
 
 リリース済み
 
-## v0.3.0
+## v0.5.0
 
-### ドキュメントサイトの作成・公開
+### トップページ
 
-npm パッケージへの機能追加はなし。サイト公開をマイルストーンとする（パッケージ版は 0.2.x のまま）。
+- 現行 Playground にあったコード解決・文字列検索デモをトップへ埋め込み移動する
 
-| 項目 | 方針 |
-|------|------|
-| 配置 | `site/`（ルート workspaces に追加） |
-| スタック | Nuxt v4 + Nuxt Content + `@nuxtjs/i18n` |
-| デプロイ | Netlify（SSG） |
+### Playground
 
-#### i18n
+- CodeMirror 6 エディタ（上）と console 出力（下）の上下分割 UI（console は最大 15 行、超過分は縦スクロール）
+- TypeScript を Sucrase（`transforms: ["typescript"]`、型チェックなし）で変換し、sandbox iframe で実行
+- top-level await 対応（`type="module"`）
+- import 許可は次のみ:
+  - `@b4moss/jp-local-gov-id`
+  - `@b4moss/jp-local-gov-id-data`
+- テンプレート 3 本（コード解決 / 文字列検索 / 都道府県・市区町村一覧）
+- URL 共有なし、モバイル最適化は対象外
 
-- URL: `/ja/...` ↔ `/en/...`（`strategy: 'prefix'`）
-- デフォルトロケール: `ja`
-- 初回訪問: ブラウザロケールで判定（`/` → cookie / `navigator.languages` で `/ja` または `/en`）
-- 手動切替: cookie（`i18n_redirected`）に保存、ヘッダーのドロップダウンで切替
-- 静的ホスト向けに `site/public/index.html` でルート振り分け
+### リリース
 
-#### 公開ページ
-
-| パス | 内容 |
-|------|------|
-| `/` | cookie / ブラウザロケールで `/ja` または `/en` へ |
-| `/{locale}/` | トップ |
-| `/{locale}/getting-started` | インストールと最小コード |
-| `/{locale}/api` | 公開 API 概要 |
-| `/{locale}/playground` | インタラクティブデモ |
-
-#### Playground
-
-- `createLocalGovClient({ data })` のみ（`url` デモはしない）
-- `getByCode`（コード解決）と `searchByText`（文字列検索）
-
-#### `docs/` と `site/content` の役割
-
-- `docs/` — 内部仕様書（`main.md` / `logics.md`）。サイトへ全文コピーしない
-- `site/content` — 公開向け利用ドキュメント（README 由来）
+- 識別子: `app-v0.5.0`
+- npm publish は別途（今回のサイト更新では GitHub Release を作らない）
 
 ----
 
