@@ -1,0 +1,33 @@
+{
+  "name": "@b4moss/jp-local-gov-id-data",
+  "version": "0.1.0",
+  "description": "日本の全国地方公共団体コードのデータ（分割 JSON）",
+  "type": "module",
+  "main": "./dataset.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dataset.js",
+      "default": "./dataset.js"
+    },
+    "./index.json": "./index.json",
+    "./prefectures.json": "./prefectures.json",
+    "./prefectures/*": "./prefectures/*",
+    "./dataset.js": "./dataset.js"
+  },
+  "files": [
+    "index.json",
+    "prefectures.json",
+    "prefectures",
+    "dataset.js",
+    "index.d.ts"
+  ],
+  "keywords": [
+    "japan",
+    "local-government",
+    "municipality",
+    "prefecture"
+  ],
+  "license": "UNLICENSED"
+}
