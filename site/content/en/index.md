@@ -33,6 +33,20 @@ await client.getByCode("131016"); // Chiyoda
 
 See [Usage](/en/usage) for details.
 
+## Try it
+
+Try code lookup and text search in the browser. For free-form TypeScript, open the [Playground](/en/playground).
+
+### Code lookup
+
+::code-lookup-demo
+::
+
+### Text search
+
+::search-demo
+::
+
 ## Packages
 
 | Package | Description |
