@@ -69,7 +69,11 @@
     "designatedCity": "Designated city display",
     "designatedCityBoth": "City and wards",
     "designatedCityCity": "City only",
-    "designatedCityWard": "Wards only"
+    "designatedCityWard": "Wards only",
+    "townAddress": "Town / street address",
+    "townAddressPlaceholder": "e.g. Marunouchi 1-1-1",
+    "buildingName": "Building name",
+    "buildingNamePlaceholder": "e.g. Foo Building 3F"
   },
   "municipalityValidationDemo": {
     "loading": "Initializing…",
