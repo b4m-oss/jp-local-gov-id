@@ -11,7 +11,7 @@ Interactive examples in the browser (official dataset bundled).
 
 Select a prefecture to load its municipalities into a dropdown. Uses `listPrefectures` and `listMunicipalitiesByPrefecture`.
 
-`designatedCity` (`"both"` | `"city"` | `"ward"`, default `"both"`) filters designated-city bodies vs wards. Tokyo special wards are not affected.
+`designatedCity` (`"both"` | `"city"` | `"ward"`, default `"both"`) filters designated-city bodies vs wards. Tokyo special wards are not affected. Town/street and building fields are decorative only (not passed to the API).
 
 ::address-input-demo
 ::
@@ -37,6 +37,12 @@ Select a prefecture to load its municipalities into a dropdown. Uses `listPrefec
   <option value="">Select a municipality</option>
   <!-- On prefecture change, fill with listMunicipalitiesByPrefecture() -->
 </select>
+
+<label for="town">Town / street address</label>
+<input id="town" type="text" placeholder="e.g. Marunouchi 1-1-1" />
+
+<label for="building">Building name</label>
+<input id="building" type="text" placeholder="e.g. Foo Building 3F" />
 ```
 
 ```ts
@@ -91,7 +97,7 @@ modeSelect.addEventListener("change", loadMunicipalities);
 
 ## Municipality validation
 
-With a prefecture selected, enter a municipality name and check whether it exists. Names that do not match an exact official name show an error (`getLocalGovCodeByName`).
+With a prefecture selected, enter a municipality name and check whether it exists. Names that do not match an exact official name show an error (`getLocalGovCodeByName`). Town/street and building fields are decorative only.
 
 ::municipality-validation-demo
 ::
@@ -107,6 +113,12 @@ With a prefecture selected, enter a municipality name and check whether it exist
 
 <label for="municipality-name">Municipality name</label>
 <input id="municipality-name" type="text" placeholder="千代田区" />
+
+<label for="town">Town / street address</label>
+<input id="town" type="text" placeholder="e.g. Marunouchi 1-1-1" />
+
+<label for="building">Building name</label>
+<input id="building" type="text" placeholder="e.g. Foo Building 3F" />
 
 <button type="button" id="validate">Validate</button>
 <p id="message" hidden></p>
