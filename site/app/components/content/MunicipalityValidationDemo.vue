@@ -24,18 +24,15 @@ onMounted(async () => {
   }
 });
 
-async function validate() {
+async function validateOnBlur() {
   error.value = null;
   resolvedCode.value = undefined;
 
+  const name = municipalityName.value.trim();
+  if (!name) return;
+
   if (!prefectureCode.value) {
     error.value = t("municipalityValidationDemo.needPrefecture");
-    return;
-  }
-
-  const name = municipalityName.value.trim();
-  if (!name) {
-    error.value = t("municipalityValidationDemo.needName");
     return;
   }
 
@@ -87,23 +84,14 @@ async function validate() {
         <label for="valid-muni">
           {{ t("municipalityValidationDemo.municipality") }}
         </label>
-        <div class="row">
-          <input
-            id="valid-muni"
-            v-model="municipalityName"
-            type="text"
-            :placeholder="t('municipalityValidationDemo.placeholder')"
-            @keyup.enter="validate"
-          >
-          <button
-            class="btn"
-            type="button"
-            :disabled="pending"
-            @click="validate"
-          >
-            {{ t("municipalityValidationDemo.run") }}
-          </button>
-        </div>
+        <input
+          id="valid-muni"
+          v-model="municipalityName"
+          type="text"
+          :placeholder="t('municipalityValidationDemo.placeholder')"
+          :disabled="pending"
+          @blur="validateOnBlur"
+        >
       </div>
       <div class="field">
         <label for="valid-town">
@@ -138,15 +126,6 @@ async function validate() {
 <style scoped>
 .demo {
   margin: 1.25rem 0;
-}
-
-.row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.row input {
-  flex: 1;
 }
 
 .ok-text {

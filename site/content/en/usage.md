@@ -181,7 +181,22 @@ This example uses a jsDelivr URL, but you can also serve a self-hosted dataset a
 
 Prefer a versioned URL. The client caches responses, so if the dataset updates under a non-unique URL, stale cache may be served.
 
-- With `url`, fetched files are cached in localStorage (key = each file URL, TTL 1 year)
+```ts
+// Disable cache
+const client = await createLocalGovClient({
+  url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+  cache: false,
+});
+
+// TTL = 1 hour
+const clientShortTtl = await createLocalGovClient({
+  url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+  cacheTtlSeconds: 3600,
+});
+```
+
+- With `url`, fetched files are cached in localStorage by default (key = each file URL)
+- Disable with `cache: false`; set TTL via `cacheTtlSeconds` (seconds; default 1 year = `31536000`)
 - Exception: municipality JSON loaded by **nationwide** string search stays in memory only (to avoid cache bloat)
 - Environments without localStorage (e.g. Node) skip caching
 - String search normalizes hiragana / fullwidth kana to halfwidth kana (`matchField` default: `"both"`)

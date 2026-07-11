@@ -97,6 +97,16 @@ const client = await createLocalGovClient({ data: dataset });
 const client = await createLocalGovClient({
   url: "https://example.com/jp-local-gov-id-data/0.3.2/index.json",
 });
+
+// キャッシュを無効化 / TTL を秒で指定（url モードのみ有効）
+const clientNoCache = await createLocalGovClient({
+  url: "https://example.com/jp-local-gov-id-data/0.3.2/index.json",
+  cache: false,
+});
+const clientShortTtl = await createLocalGovClient({
+  url: "https://example.com/jp-local-gov-id-data/0.3.2/index.json",
+  cacheTtlSeconds: 3600, // 1 時間
+});
 ```
 
 ### 遅延ロードと文字列検索
@@ -115,15 +125,17 @@ const client = await createLocalGovClient({
 
 ### URL 取得時のキャッシュ（localStorage）
 
-- **`url` 起点で fetch した各ファイル**について、結果を localStorage に保存して再利用する
-- 例外: **全国対象の文字列検索**で取得した県別 JSON（`prefectures/{code}.json`）は localStorage に書かず、**メモリのみ**保持する
-- `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` / 都道府県指定の検索で取得した県別 JSON は従来どおりキャッシュする
-- `data` を直接渡した場合はキャッシュしない
+- **`url` 起点で fetch した各ファイル**について、結果を localStorage に保存して再利用する（**既定: ON**）
+- `createLocalGovClient` のオプションで制御する:
+  - `cache?: boolean` — 既定 `true`。`false` で localStorage の読み書きを行わない
+  - `cacheTtlSeconds?: number` — 有効期限（**秒**）。既定 `31536000`（1 年）。`cache: false` のときは無視
+- 例外: **全国対象の文字列検索**で取得した県別 JSON（`prefectures/{code}.json`）は localStorage に書かず、**メモリのみ**保持する（`cache` の設定にかかわらず書き込みしない）
+- `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` / 都道府県指定の検索で取得した県別 JSON は従来どおりキャッシュする（`cache: true` のとき）
+- `data` を直接渡した場合はキャッシュしない（`cache` / `cacheTtlSeconds` を渡しても URL キャッシュには使わない）
 - **キャッシュキーは版付き URL そのもの**とする（公式の利用方法）
-- 有効期限は **1 年**
 - localStorage が使えない環境（Node 等）ではキャッシュをスキップしてよい
 - 同一 URL の中身を後から書き換えた場合の整合は保証しない
-- 既に localStorage にある県別 JSON は、全国検索時も読み取り再利用してよい（書き込みだけ抑止）
+- 既に localStorage にある県別 JSON は、全国検索時も読み取り再利用してよい（書き込みだけ抑止。`cache: false` のときは読み取りもしない）
 
 ### 公式 URL と自前データ
 
@@ -185,8 +197,18 @@ type SearchOptions = {
 }
 
 type CreateLocalGovOptions =
-  | { data: unknown; url?: never }
-  | { url: string; data?: never }
+  | {
+      data: unknown
+      url?: never
+      cache?: boolean              // url モード用。data では無視（既定 true）
+      cacheTtlSeconds?: number     // 秒。既定 31536000（1 年）
+    }
+  | {
+      url: string
+      data?: never
+      cache?: boolean              // 既定: true
+      cacheTtlSeconds?: number     // 秒。既定: 31536000（1 年）
+    }
 
 /** インデックス解決・都道府県ロード・スキーマ検証のうえクライアントを返す */
 createLocalGovClient(options: CreateLocalGovOptions): Promise<LocalGovClient>

@@ -13,8 +13,10 @@ Overview of the client returned by `createLocalGovClient`.
 |--------|-------------|
 | `data` | npm dataset (or equivalent object) |
 | `url` | Versioned URL to `index.json` |
+| `cache` | localStorage cache for `url` mode. Default `true` |
+| `cacheTtlSeconds` | Cache TTL in seconds. Default `31536000` (1 year) |
 
-Exactly one is required.
+Exactly one of `data` or `url` is required. `cache` / `cacheTtlSeconds` apply to `url` mode (unused for URL caching when using `data`).
 
 ## `LocalGov`
 
@@ -77,5 +79,7 @@ String search normalizes hiragana / fullwidth kana to halfwidth kana.
 
 ## Caching in `url` mode
 
-- Fetched files are cached in localStorage (key = URL, TTL 1 year)
+- By default, fetched files are cached in localStorage (key = URL)
+- Disable with `cache: false`
+- Set TTL with `cacheTtlSeconds` (seconds; default 1 year = `31536000`)
 - Municipality JSON loaded by **nationwide** string search stays in memory only

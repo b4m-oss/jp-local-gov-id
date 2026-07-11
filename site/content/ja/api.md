@@ -13,8 +13,10 @@ description: LocalGovClient の公開メソッド
 |------------|------|
 | `data` | npm データセット（または同等オブジェクト） |
 | `url` | `index.json` の版付き URL |
+| `cache` | `url` モードの localStorage キャッシュ。既定 `true` |
+| `cacheTtlSeconds` | キャッシュ TTL（秒）。既定 `31536000`（1 年） |
 
-どちらか一方が必須。両方指定は不可。
+どちらか一方が必須（`data` または `url`）。両方指定は不可。`cache` / `cacheTtlSeconds` は `url` モード向け（`data` では URL キャッシュに使わない）。
 
 ## `LocalGov`
 
@@ -77,5 +79,7 @@ description: LocalGovClient の公開メソッド
 
 ## `url` モードのキャッシュ
 
-- 取得ファイルを localStorage にキャッシュ（キーは URL、TTL 1 年）
+- 既定で取得ファイルを localStorage にキャッシュ（キーは URL）
+- `cache: false` で無効化できる
+- `cacheTtlSeconds` で TTL を秒単位で指定（既定 1 年 = `31536000`）
 - **全国対象**の文字列検索で読み込んだ県別 JSON はメモリのみ（localStorage に書かない）

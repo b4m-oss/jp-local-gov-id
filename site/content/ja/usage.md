@@ -181,7 +181,22 @@ const client = await createLocalGovClient({
 
 その場合、URLにはversionを指定することをお勧めします。アプリにはキャッシュ機能があるため、データソースが更新された場合、URLが一意でないと、古いキャッシュが配信される可能性があります。
 
-- `url` 指定時、取得したファイルを localStorage にキャッシュします（キーは各ファイルの URL、有効期限 1 年）
+```ts
+// キャッシュ無効
+const client = await createLocalGovClient({
+  url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+  cache: false,
+});
+
+// TTL を 1 時間に
+const clientShortTtl = await createLocalGovClient({
+  url: "https://cdn.jsdelivr.net/npm/@b4moss/jp-local-gov-id-data@0.1.0/index.json",
+  cacheTtlSeconds: 3600,
+});
+```
+
+- `url` 指定時、取得したファイルを localStorage にキャッシュします（既定 ON。キーは各ファイルの URL）
+- `cache: false` で無効化、`cacheTtlSeconds` で有効期限を秒単位で指定（既定 1 年 = `31536000`）
 - 例外: **全国対象**の文字列検索で取得した県別 JSON は localStorage に書かず、メモリのみ保持します（キャッシュの巨大化を避けるため）
 - localStorage が無い環境（Node 等）ではキャッシュをスキップします
 - 文字列検索はひらがな／全角カナを半角カナへ正規化します（`matchField` 既定: `"both"`）

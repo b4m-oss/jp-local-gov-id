@@ -60,12 +60,16 @@
 
 ### キャッシュ（`url` 経路のみ）
 
-| 経路 | localStorage 書き込み | メモリ |
-|------|----------------------|--------|
+| 経路 | localStorage 書き込み（`cache: true`） | メモリ |
+|------|----------------------------------------|--------|
 | 初期化（index / prefectures） | する | する |
 | `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` | する | する |
 | 都道府県指定の `searchByText` / `getLocalGovCodeByName` | する | する |
 | **全国**の `searchByText` / `getLocalGovCodeByName`（市区町村対象） | **しない** | する |
+
+- `cache` 既定 `true`。`false` で localStorage 読み書きなし
+- `cacheTtlSeconds` 既定 `31536000`（1 年）。単位は秒
+- `data` モードではキャッシュしない
 
 全国検索の並列度: 同時 6（`MUNICIPALITY_FETCH_CONCURRENCY`）
 
@@ -78,6 +82,8 @@
 #### `createLocalGovClient(options)` → `Promise<LocalGovClient>`
 
 - `options`: `{ data }` または `{ url }`（どちらか必須、両方不可）
+- `cache?: boolean`（既定 `true`）— `url` モードの localStorage キャッシュ
+- `cacheTtlSeconds?: number`（既定 `31536000`）— TTL（秒）。`url` かつ `cache: true` のとき有効
 - index + 都道府県を読み込み、スキーマ検証してクライアントを返す
 - 市区町村はまだ読まない
 
@@ -142,7 +148,9 @@
 | `LOCAL_GOV_SCHEMA_VERSION` | const | 現行スキーマ版（`1`） |
 | `MUNICIPALITY_FETCH_CONCURRENCY` | const | 全国検索の並列度（`6`） |
 
-型: `LocalGov`, `LocalGovClient`, `CreateLocalGovOptions`, `SearchOptions`, `SearchTarget`, `MatchField`, `DesignatedCityMode`, `ListMunicipalitiesOptions`, `LocalGovDataset`, `LocalGovIndexFile`, `LocalGovPrefecturesFile`, `LocalGovMunicipalitiesFile`, `LocalGovDataFile`（deprecated）
+型: `LocalGov`, `LocalGovClient`, `CreateLocalGovOptions`, `CreateLocalGovCacheOptions`, `SearchOptions`, `SearchTarget`, `MatchField`, `DesignatedCityMode`, `ListMunicipalitiesOptions`, `LocalGovDataset`, `LocalGovIndexFile`, `LocalGovPrefecturesFile`, `LocalGovMunicipalitiesFile`, `LocalGovDataFile`（deprecated）
+
+定数: `DEFAULT_CACHE_TTL_SECONDS`（`31536000`）、`CACHE_TTL_MS`（deprecated 互換）、`LOCAL_GOV_SCHEMA_VERSION`、`MUNICIPALITY_FETCH_CONCURRENCY`
 
 旧名（`createLocalGov`, `getPrefectureCode`, `getMunicipalitiesByPrefecture`, `search`, `getCodeByName`）に互換エイリアスは置かない。
 
