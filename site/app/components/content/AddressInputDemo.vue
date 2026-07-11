@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LocalGov } from "@b4moss/jp-local-gov-id";
+import type { DesignatedCityMode, LocalGov } from "@b4moss/jp-local-gov-id";
 
 const { t } = useI18n();
 
@@ -9,6 +9,7 @@ const prefectures = ref<LocalGov[]>([]);
 const municipalities = ref<LocalGov[]>([]);
 const prefectureCode = ref("");
 const municipalityCode = ref("");
+const designatedCity = ref<DesignatedCityMode>("both");
 const muniPending = ref(false);
 const muniError = ref<string | null>(null);
 
@@ -26,7 +27,7 @@ onMounted(async () => {
   }
 });
 
-async function onPrefectureChange() {
+async function loadMunicipalities() {
   municipalityCode.value = "";
   municipalities.value = [];
   muniError.value = null;
@@ -38,12 +39,22 @@ async function onPrefectureChange() {
     const client = await useLocalGovClient();
     municipalities.value = await client.listMunicipalitiesByPrefecture(
       prefectureCode.value,
+      { designatedCity: designatedCity.value },
     );
   } catch (e) {
     muniError.value = e instanceof Error ? e.message : String(e);
   } finally {
     muniPending.value = false;
   }
+}
+
+async function onPrefectureChange() {
+  await loadMunicipalities();
+}
+
+async function onDesignatedCityChange() {
+  if (!prefectureCode.value) return;
+  await loadMunicipalities();
 }
 </script>
 
@@ -68,6 +79,26 @@ async function onPrefectureChange() {
             :value="pref.code"
           >
             {{ pref.name }}
+          </option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="address-designated-city">
+          {{ t("addressInputDemo.designatedCity") }}
+        </label>
+        <select
+          id="address-designated-city"
+          v-model="designatedCity"
+          @change="onDesignatedCityChange"
+        >
+          <option value="both">
+            {{ t("addressInputDemo.designatedCityBoth") }}
+          </option>
+          <option value="city">
+            {{ t("addressInputDemo.designatedCityCity") }}
+          </option>
+          <option value="ward">
+            {{ t("addressInputDemo.designatedCityWard") }}
           </option>
         </select>
       </div>
