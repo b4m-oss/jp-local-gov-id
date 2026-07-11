@@ -13,8 +13,14 @@ description: LocalGovClient の公開メソッド
 |------------|------|
 | `data` | npm データセット（または同等オブジェクト） |
 | `url` | `index.json` の版付き URL |
+| `cache` | `url` モードのみ。localStorage キャッシュの ON/OFF（既定: `true`） |
+| `cacheTtlMs` | `url` モードのみ。キャッシュ TTL（ミリ秒、既定: 1 年） |
 
-どちらか一方が必須。両方指定は不可。
+`data` と `url` のどちらか一方が必須。両方指定は不可。
+
+## `isValidMunicipalityCode(code)`
+
+6 桁かつチェックデジットが正しければ `true`。不正ならデータ取得前に弾く用途向け。
 
 ## `LocalGov`
 
@@ -58,5 +64,12 @@ description: LocalGovClient の公開メソッド
 
 ## `url` モードのキャッシュ
 
-- 取得ファイルを localStorage にキャッシュ（キーは URL、TTL 1 年）
+- 取得ファイルを localStorage にキャッシュ（キーは URL、TTL 既定 1 年）
+- `cache: false` で読み書きとも無効化、`cacheTtlMs` で TTL を変更可能
 - **全国対象**の文字列検索で読み込んだ県別 JSON はメモリのみ（localStorage に書かない）
+
+## コード検証
+
+- 市区町村 6 桁はチェックデジットを検証する
+- 不正な場合は `getMunicipalityByCode` / `getByCode` は `null` を返し、県別 JSON を fetch しない
+- `isValidMunicipalityCode` で事前に判定できる
