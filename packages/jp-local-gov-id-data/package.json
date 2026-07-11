@@ -32,5 +32,13 @@
     "municipality",
     "prefecture"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b4m-oss/jp-local-gov-id",
+    "directory": "packages/jp-local-gov-id-data"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

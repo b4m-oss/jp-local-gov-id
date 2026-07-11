@@ -1,6 +1,6 @@
 {
   "name": "@b4moss/jp-local-gov-id",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "日本の全国地方公共団体コードを扱う npm パッケージ",
   "type": "module",
   "main": "./dist/jp-local-gov-id.js",
@@ -29,6 +29,14 @@
     "prefecture"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b4m-oss/jp-local-gov-id",
+    "directory": "packages/jp-local-gov-id"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@b4moss/jp-local-gov-id-data": "0.1.0",
     "typescript": "^5.8.3",

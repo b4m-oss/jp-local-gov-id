@@ -11,7 +11,13 @@
     "dev": "npm run dev -w @b4moss/jp-local-gov-id",
     "build": "npm run build -w @b4moss/jp-local-gov-id",
     "test": "npm run test -w @b4moss/jp-local-gov-id",
-    "generate": "npm run generate -w jp-local-gov-id-scripts"
+    "generate": "npm run generate -w jp-local-gov-id-scripts",
+    "check-publish": "node scripts/check-publish.mjs",
+    "publish:dry-run": "npm run check-publish && npm publish --dry-run --access public --workspace @b4moss/jp-local-gov-id-data && npm publish --dry-run --access public --workspace @b4moss/jp-local-gov-id"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b4m-oss/jp-local-gov-id"
+  }
 }

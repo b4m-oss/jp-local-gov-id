@@ -4,8 +4,14 @@ import {
 } from "./pool";
 import type { LocalGov, LocalGovIndexFile } from "./types";
 
+export type LoadMunicipalitiesOptions = {
+  /** When false, URL fetches skip localStorage writes. Default true. */
+  persist?: boolean;
+};
+
 export type LoadMunicipalitiesFn = (
   code: string,
+  options?: LoadMunicipalitiesOptions,
 ) => Promise<readonly LocalGov[]>;
 
 export type LocalGovStore = {
@@ -13,7 +19,10 @@ export type LocalGovStore = {
   prefectures: readonly LocalGov[];
   prefectureByCode: ReadonlyMap<string, LocalGov>;
   prefectureByName: ReadonlyMap<string, LocalGov>;
-  ensureMunicipalities: (codes: readonly string[]) => Promise<void>;
+  ensureMunicipalities: (
+    codes: readonly string[],
+    options?: LoadMunicipalitiesOptions,
+  ) => Promise<void>;
   getMunicipalities: (code: string) => readonly LocalGov[] | undefined;
   getMunicipalityByCode: (code: string) => LocalGov | undefined;
   allPrefectureCodes: readonly string[];
@@ -40,7 +49,10 @@ export function createStore(
       ? index.prefectureCodes
       : prefectures.map((p) => p.code);
 
-  async function loadOne(code: string): Promise<void> {
+  async function loadOne(
+    code: string,
+    options?: LoadMunicipalitiesOptions,
+  ): Promise<void> {
     if (municipalitiesByPrefectureCode.has(code)) return;
 
     const existing = inFlight.get(code);
@@ -50,7 +62,7 @@ export function createStore(
     }
 
     const promise = (async () => {
-      const list = await loadMunicipalities(code);
+      const list = await loadMunicipalities(code, options);
       municipalitiesByPrefectureCode.set(code, list);
       for (const m of list) {
         municipalityByCode.set(m.code, m);
@@ -65,6 +77,7 @@ export function createStore(
 
   async function ensureMunicipalities(
     codes: readonly string[],
+    options?: LoadMunicipalitiesOptions,
   ): Promise<void> {
     const needed = codes.filter((c) => !municipalitiesByPrefectureCode.has(c));
     if (needed.length === 0) return;
@@ -73,7 +86,7 @@ export function createStore(
       needed,
       MUNICIPALITY_FETCH_CONCURRENCY,
       async (code) => {
-        await loadOne(code);
+        await loadOne(code, options);
       },
     );
   }
