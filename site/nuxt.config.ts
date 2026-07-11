@@ -7,6 +7,13 @@ export default defineNuxtConfig({
   content: {
     // Avoid better-sqlite3 native bindings on Netlify CI (Node 22+)
     experimental: { sqliteConnector: "native" },
+    build: {
+      markdown: {
+        highlight: {
+          theme: "github-dark",
+        },
+      },
+    },
   },
   app: {
     head: {
