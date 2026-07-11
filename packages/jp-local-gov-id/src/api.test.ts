@@ -574,4 +574,37 @@ describe("createLocalGovClient url + cache + lazy load", () => {
     await createLocalGovClient({ url: indexUrl });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("skips localStorage when cache is false", async () => {
+    stubLocalStorage();
+    const fetchMock = stubFetch(fileMap());
+
+    await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(store.size).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await createLocalGovClient({ url: indexUrl, cache: false });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("uses cacheTtlSeconds when writing cache entries", async () => {
+    stubLocalStorage();
+    stubFetch(fileMap());
+    const before = Date.now();
+
+    await createLocalGovClient({ url: indexUrl, cacheTtlSeconds: 60 });
+
+    const cached = JSON.parse(store.get(indexUrl)!);
+    expect(cached.expiresAt).toBeGreaterThanOrEqual(before + 60_000);
+    expect(cached.expiresAt).toBeLessThanOrEqual(Date.now() + 60_000 + 1000);
+  });
+
+  it("rejects invalid cacheTtlSeconds", async () => {
+    stubLocalStorage();
+    stubFetch(fileMap());
+
+    await expect(
+      createLocalGovClient({ url: indexUrl, cacheTtlSeconds: -1 }),
+    ).rejects.toThrow(/cacheTtlSeconds/);
+  });
 });
