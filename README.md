@@ -21,28 +21,31 @@ npm install @b4moss/jp-local-gov-id
 
 ## Usage
 
-`createLocalGov` is async. Either `data` or `url` (a **versioned URL** to **index.json**) is required.
+`createLocalGovClient` is async. Either `data` or `url` (a **versioned URL** to **index.json**) is required.
 
 On init it loads only the index and prefectures; municipalities are lazy-loaded per prefecture. Nationwide string search fetches unloaded prefecture JSON files with concurrency of 6.
 
 ```ts
-import { createLocalGov } from "@b4moss/jp-local-gov-id";
+import { createLocalGovClient } from "@b4moss/jp-local-gov-id";
 import dataset from "@b4moss/jp-local-gov-id-data";
 
-const client = await createLocalGov({ data: dataset });
+const client = await createLocalGovClient({ data: dataset });
 
 client.listPrefectures();
-client.getPrefectureCode("大阪府"); // "27"
-await client.getMunicipalitiesByPrefecture("13"); // municipalities in Tokyo, etc.
-await client.getByCode("131016"); // Chiyoda City
-await client.search("中央", { prefecture: "01", target: "cities" });
-await client.getCodeByName("千代田区"); // "131016"
+client.getPrefectureByCode("27"); // Osaka
+client.getPrefectureCodeByName("大阪府"); // "27"
+await client.listMunicipalitiesByPrefecture("13"); // municipalities in Tokyo, etc.
+await client.getMunicipalityByCode("131016"); // Chiyoda City
+await client.getByCode("131016");
+await client.searchByText("中央", { prefecture: "01", target: "cities" });
+await client.searchByText("ちよだ", { prefecture: "13", target: "cities" }); // kana / hiragana OK
+await client.getLocalGovCodeByName("千代田区"); // "131016"
 ```
 
 Fetch from a versioned index URL:
 
 ```ts
-const client = await createLocalGov({
+const client = await createLocalGovClient({
   url: "https://example.com/jp-local-gov-id-data/0.2.0/index.json",
 });
 ```
@@ -50,6 +53,7 @@ const client = await createLocalGov({
 - When `url` is set, fetched files are cached in localStorage (key = file URL, TTL 1 year)
 - Exception: municipality JSON loaded by **nationwide** string search is kept in memory only (not written to localStorage)
 - Environments without localStorage (e.g. Node) skip caching
+- String search normalizes hiragana / fullwidth kana to halfwidth kana (`matchField` default: `"both"`)
 - Schema mismatches / invalid JSON raise `LocalGovSchemaError`; network / HTTP failures are normal fetch errors
 - Missing or ambiguous query results return `null` / `[]` (they do not throw)
 

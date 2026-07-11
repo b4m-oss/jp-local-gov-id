@@ -9,9 +9,13 @@ export type LocalGov = {
 
 export type SearchTarget = "all" | "prefectures" | "cities";
 
+export type MatchField = "name" | "nameKana" | "both";
+
 export type SearchOptions = {
   prefecture?: string;
   target?: SearchTarget;
+  /** Default: "both" */
+  matchField?: MatchField;
 };
 
 /** Index file (`index.json`) */
@@ -48,7 +52,7 @@ export type LocalGovMunicipalitiesFile = {
 };
 
 /**
- * In-memory / npm dataset passed to `createLocalGov({ data })`.
+ * In-memory / npm dataset passed to `createLocalGovClient({ data })`.
  * Municipalities are resolved via `municipalitiesByCode` and/or `loadMunicipalities`.
  */
 export type LocalGovDataset = {
@@ -69,11 +73,16 @@ export type CreateLocalGovOptions =
 
 export type LocalGovClient = {
   listPrefectures(): LocalGov[];
-  getPrefectureCode(name: string): string | null;
-  getMunicipalitiesByPrefecture(pref: string): Promise<LocalGov[]>;
+  getPrefectureByCode(code: string): LocalGov | null;
+  getPrefectureCodeByName(name: string): string | null;
+  listMunicipalitiesByPrefecture(pref: string): Promise<LocalGov[]>;
+  getMunicipalityByCode(code: string): Promise<LocalGov | null>;
   getByCode(code: string): Promise<LocalGov | null>;
-  search(name: string, options?: SearchOptions): Promise<LocalGov[]>;
-  getCodeByName(name: string, options?: SearchOptions): Promise<string | null>;
+  searchByText(text: string, options?: SearchOptions): Promise<LocalGov[]>;
+  getLocalGovCodeByName(
+    name: string,
+    options?: SearchOptions,
+  ): Promise<string | null>;
 };
 
 /** @deprecated Use LocalGovIndexFile / split file types. Kept for export compatibility. */

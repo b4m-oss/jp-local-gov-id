@@ -91,10 +91,10 @@ resources/*.xlsx
 ```ts
 // 公式データパッケージから渡す（形は実装で確定。index + 解決手段）
 import * as dataset from "@b4moss/jp-local-gov-id-data";
-const client = await createLocalGov({ data: dataset });
+const client = await createLocalGovClient({ data: dataset });
 
 // または版付きインデックス URL
-const client = await createLocalGov({
+const client = await createLocalGovClient({
   url: "https://example.com/jp-local-gov-id-data/0.3.2/index.json",
 });
 ```
@@ -102,7 +102,7 @@ const client = await createLocalGov({
 ### 遅延ロードと文字列検索
 
 - 特定都道府県の市区町村が必要な API は、未ロードなら当該 `prefectures/{code}.json` を取得する
-- **全国を対象とする文字列検索**（`search` / `getCodeByName` で都道府県に絞らない、かつ市区町村が対象に含まれる場合など）では、未ロードの県別 JSON をすべて取得してから検索する
+- **全国を対象とする文字列検索**（`searchByText` / `getLocalGovCodeByName` で都道府県に絞らない、かつ市区町村が対象に含まれる場合など）では、未ロードの県別 JSON をすべて取得してから検索する
 - その際の並列度は **同時 6 件**とする（6 件ずつ並列 fetch）
 - すでにメモリ上にある県別データは再取得しない
 - `url` 経路で取得した各ファイルは、後述の localStorage キャッシュ対象とする（ただし全国検索で取得した県別 JSON は例外）
@@ -117,7 +117,7 @@ const client = await createLocalGov({
 
 - **`url` 起点で fetch した各ファイル**について、結果を localStorage に保存して再利用する
 - 例外: **全国対象の文字列検索**で取得した県別 JSON（`prefectures/{code}.json`）は localStorage に書かず、**メモリのみ**保持する
-- `getByCode` / `getMunicipalitiesByPrefecture` / 都道府県指定の検索で取得した県別 JSON は従来どおりキャッシュする
+- `getByCode` / `listMunicipalitiesByPrefecture` / `getMunicipalityByCode` / 都道府県指定の検索で取得した県別 JSON は従来どおりキャッシュする
 - `data` を直接渡した場合はキャッシュしない
 - **キャッシュキーは版付き URL そのもの**とする（公式の利用方法）
 - 有効期限は **1 年**
@@ -150,7 +150,7 @@ const client = await createLocalGov({
 - 名前からコードを取る場合は、一意に決まるときのみ返すこと
 - クエリ時、見つからない場合や同名で一意に決まらない場合は、`null` または空配列を返すこと（例外は投げない）
 
-## API（案）
+## API
 
 市区町村データを必要としうる操作は **async** とする（遅延ロードのため）。
 
@@ -169,48 +169,55 @@ type LocalGov = {
 
 type SearchTarget = "all" | "prefectures" | "cities"
 
+type SearchOptions = {
+  prefecture?: string
+  target?: SearchTarget       // 既定: "all"
+  matchField?: "name" | "nameKana" | "both"  // 既定: "both"
+}
+
 type CreateLocalGovOptions =
   | { data: unknown; url?: never }
   | { url: string; data?: never }
 
 /** インデックス解決・都道府県ロード・スキーマ検証のうえクライアントを返す */
-createLocalGov(options: CreateLocalGovOptions): Promise<LocalGovClient>
+createLocalGovClient(options: CreateLocalGovOptions): Promise<LocalGovClient>
 
 type LocalGovClient = {
   /** 同期可（初期化時にロード済み） */
   listPrefectures(): LocalGov[]
-  getPrefectureCode(name: string): string | null
+  getPrefectureByCode(code: string): LocalGov | null
+  getPrefectureCodeByName(name: string): string | null
 
   /** 未ロードなら県別 JSON を取得してから返す */
-  getMunicipalitiesByPrefecture(pref: string): Promise<LocalGov[]>
+  listMunicipalitiesByPrefecture(pref: string): Promise<LocalGov[]>
+  getMunicipalityByCode(code: string): Promise<LocalGov | null>
   getByCode(code: string): Promise<LocalGov | null>
-  search(name: string, options?: {
-    prefecture?: string
-    target?: SearchTarget  // 既定: "all"
-  }): Promise<LocalGov[]>
-  getCodeByName(name: string, options?: {
-    prefecture?: string
-    target?: SearchTarget
-  }): Promise<string | null>
+  searchByText(text: string, options?: SearchOptions): Promise<LocalGov[]>
+  getLocalGovCodeByName(name: string, options?: SearchOptions): Promise<string | null>
 }
 ```
+
+文字列検索は比較前にひらがな→カタカナ、全角カナ→半角カナへ正規化する。
 
 ### 利用例
 
 ```ts
-const client = await createLocalGov({
+const client = await createLocalGovClient({
   url: "https://.../0.3.2/index.json",
 })
 
 client.listPrefectures()
-client.getPrefectureCode("大阪府")
+client.getPrefectureCodeByName("大阪府")
+client.getPrefectureByCode("27")
 
-await client.getMunicipalitiesByPrefecture("大阪府")
+await client.listMunicipalitiesByPrefecture("大阪府")
+await client.getMunicipalityByCode("271004")
 await client.getByCode("271004")
-await client.search("堺") // 全国対象なら未ロード県を 6 並列で取得してから検索
-await client.search("中央", { prefecture: "01", target: "cities" })
-await client.search("東京", { target: "prefectures" }) // 都道府県のみなら追加 fetch 不要
-await client.getCodeByName("千代田区")
+await client.searchByText("堺") // 全国対象なら未ロード県を 6 並列で取得してから検索
+await client.searchByText("中央", { prefecture: "01", target: "cities" })
+await client.searchByText("東京", { target: "prefectures" }) // 都道府県のみなら追加 fetch 不要
+await client.searchByText("ちよだ", { target: "cities" }) // カナ／ひらがな可
+await client.getLocalGovCodeByName("千代田区")
 ```
 
 ## 情報のソース

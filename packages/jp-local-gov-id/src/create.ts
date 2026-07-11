@@ -1,5 +1,5 @@
 import { getCachedData, setCachedData } from "./cache";
-import { createLocalGovClient } from "./api";
+import { buildLocalGovClient } from "./api";
 import {
   LocalGovSchemaError,
   normalizeDatasetInput,
@@ -103,7 +103,7 @@ async function createFromUrl(indexUrl: string): Promise<LocalGovClient> {
     },
   );
 
-  return createLocalGovClient(store);
+  return buildLocalGovClient(store);
 }
 
 async function createFromData(data: unknown): Promise<LocalGovClient> {
@@ -134,7 +134,7 @@ async function createFromData(data: unknown): Promise<LocalGovClient> {
     },
   );
 
-  return createLocalGovClient(store);
+  return buildLocalGovClient(store);
 }
 
 /**
@@ -142,12 +142,12 @@ async function createFromData(data: unknown): Promise<LocalGovClient> {
  * Municipality JSON is loaded lazily (concurrency 6 for nationwide search).
  * Pass either `{ data }` (dataset) or `{ url }` (versioned index.json URL).
  */
-export async function createLocalGov(
+export async function createLocalGovClient(
   options: CreateLocalGovOptions,
 ): Promise<LocalGovClient> {
   if (!options || typeof options !== "object") {
     throw new TypeError(
-      "createLocalGov requires options with either `data` or `url`",
+      "createLocalGovClient requires options with either `data` or `url`",
     );
   }
 
@@ -156,13 +156,13 @@ export async function createLocalGov(
 
   if (dataProvided && urlProvided) {
     throw new TypeError(
-      "createLocalGov accepts either `data` or `url`, not both",
+      "createLocalGovClient accepts either `data` or `url`, not both",
     );
   }
 
   if (!dataProvided && !urlProvided) {
     throw new TypeError(
-      "createLocalGov requires either `data` or `url`",
+      "createLocalGovClient requires either `data` or `url`",
     );
   }
 

@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import dataset from "@b4moss/jp-local-gov-id-data";
-import { createLocalGov } from "./create";
+import { createLocalGovClient } from "./create";
 import { CACHE_TTL_MS } from "./cache";
 import { MUNICIPALITY_FETCH_CONCURRENCY } from "./pool";
 import { LocalGovSchemaError } from "./schema";
 import type { LocalGovClient, LocalGovIndexFile } from "./types";
 
 async function client(): Promise<LocalGovClient> {
-  return createLocalGov({ data: dataset });
+  return createLocalGovClient({ data: dataset });
 }
 
 const indexUrl =
@@ -29,28 +29,28 @@ function fileMap(): Map<string, unknown> {
   return map;
 }
 
-describe("createLocalGov", () => {
+describe("createLocalGovClient", () => {
   it("requires data or url", async () => {
     await expect(
-      createLocalGov({} as { data: unknown }),
+      createLocalGovClient({} as { data: unknown }),
     ).rejects.toThrow(/data|url/);
   });
 
   it("rejects both data and url", async () => {
     await expect(
-      createLocalGov({ data: dataset, url: indexUrl } as never),
+      createLocalGovClient({ data: dataset, url: indexUrl } as never),
     ).rejects.toThrow(/either/);
   });
 
   it("throws LocalGovSchemaError for invalid shape", async () => {
-    await expect(createLocalGov({ data: { foo: 1 } })).rejects.toBeInstanceOf(
+    await expect(createLocalGovClient({ data: { foo: 1 } })).rejects.toBeInstanceOf(
       LocalGovSchemaError,
     );
-    await expect(createLocalGov({ data: null })).rejects.toBeInstanceOf(
+    await expect(createLocalGovClient({ data: null })).rejects.toBeInstanceOf(
       LocalGovSchemaError,
     );
     await expect(
-      createLocalGov({
+      createLocalGovClient({
         data: {
           index: { schemaVersion: 1 },
           prefectures: { schemaVersion: 1, prefectures: [{ code: 1 }] },
@@ -61,7 +61,7 @@ describe("createLocalGov", () => {
 
   it("throws LocalGovSchemaError for unsupported schemaVersion", async () => {
     await expect(
-      createLocalGov({
+      createLocalGovClient({
         data: {
           index: {
             ...(dataset.index as LocalGovIndexFile),
@@ -83,26 +83,42 @@ describe("listPrefectures", () => {
   });
 });
 
-describe("getPrefectureCode", () => {
+describe("getPrefectureCodeByName", () => {
   it("returns 2-digit code for an exact prefecture name", async () => {
     const c = await client();
-    expect(c.getPrefectureCode("東京都")).toBe("13");
-    expect(c.getPrefectureCode("北海道")).toBe("01");
+    expect(c.getPrefectureCodeByName("東京都")).toBe("13");
+    expect(c.getPrefectureCodeByName("北海道")).toBe("01");
   });
 
   it("returns null when not found", async () => {
     const c = await client();
-    expect(c.getPrefectureCode("東京")).toBeNull();
-    expect(c.getPrefectureCode("存在しない県")).toBeNull();
+    expect(c.getPrefectureCodeByName("東京")).toBeNull();
+    expect(c.getPrefectureCodeByName("存在しない県")).toBeNull();
   });
 });
 
-describe("getMunicipalitiesByPrefecture", () => {
+describe("getPrefectureByCode", () => {
+  it("resolves prefecture by padded and unpadded code", async () => {
+    const c = await client();
+    expect(c.getPrefectureByCode("13")?.name).toBe("東京都");
+    expect(c.getPrefectureByCode("1")?.name).toBe("北海道");
+    expect(c.getPrefectureByCode("01")?.name).toBe("北海道");
+  });
+
+  it("returns null for invalid or unknown codes", async () => {
+    const c = await client();
+    expect(c.getPrefectureByCode("99")).toBeNull();
+    expect(c.getPrefectureByCode("131016")).toBeNull();
+    expect(c.getPrefectureByCode("")).toBeNull();
+  });
+});
+
+describe("listMunicipalitiesByPrefecture", () => {
   it("accepts name, padded code, and unpadded code", async () => {
     const c = await client();
-    const byName = await c.getMunicipalitiesByPrefecture("北海道");
-    const byPadded = await c.getMunicipalitiesByPrefecture("01");
-    const byUnpadded = await c.getMunicipalitiesByPrefecture("1");
+    const byName = await c.listMunicipalitiesByPrefecture("北海道");
+    const byPadded = await c.listMunicipalitiesByPrefecture("01");
+    const byUnpadded = await c.listMunicipalitiesByPrefecture("1");
 
     expect(byName.length).toBeGreaterThan(0);
     expect(byPadded).toEqual(byName);
@@ -110,15 +126,30 @@ describe("getMunicipalitiesByPrefecture", () => {
   });
 
   it("includes designated city body and ward", async () => {
-    const munis = await (await client()).getMunicipalitiesByPrefecture("01");
+    const munis = await (await client()).listMunicipalitiesByPrefecture("01");
     expect(munis.find((m) => m.code === "011002")?.name).toBe("札幌市");
     expect(munis.find((m) => m.code === "011011")?.name).toBe("札幌市中央区");
   });
 
   it("returns empty array when prefecture is unknown", async () => {
     const c = await client();
-    expect(await c.getMunicipalitiesByPrefecture("99")).toEqual([]);
-    expect(await c.getMunicipalitiesByPrefecture("存在しない県")).toEqual([]);
+    expect(await c.listMunicipalitiesByPrefecture("99")).toEqual([]);
+    expect(await c.listMunicipalitiesByPrefecture("存在しない県")).toEqual([]);
+  });
+});
+
+describe("getMunicipalityByCode", () => {
+  it("resolves municipality by 6-digit code", async () => {
+    expect((await (await client()).getMunicipalityByCode("131016"))?.name).toBe(
+      "千代田区",
+    );
+  });
+
+  it("returns null for prefecture codes and invalid input", async () => {
+    const c = await client();
+    expect(await c.getMunicipalityByCode("13")).toBeNull();
+    expect(await c.getMunicipalityByCode("1")).toBeNull();
+    expect(await c.getMunicipalityByCode("999999")).toBeNull();
   });
 });
 
@@ -148,16 +179,16 @@ describe("getByCode", () => {
   });
 });
 
-describe("search", () => {
+describe("searchByText", () => {
   it("partial-matches names", async () => {
-    const hits = await (await client()).search("千代田");
+    const hits = await (await client()).searchByText("千代田");
     expect(hits.some((h) => h.code === "131016" && h.name === "千代田区")).toBe(
       true,
     );
   });
 
   it("filters by target prefectures", async () => {
-    const hits = await (await client()).search("大阪", {
+    const hits = await (await client()).searchByText("大阪", {
       target: "prefectures",
     });
     expect(hits).toHaveLength(1);
@@ -165,14 +196,14 @@ describe("search", () => {
   });
 
   it("filters by target cities", async () => {
-    const hits = await (await client()).search("大阪", { target: "cities" });
+    const hits = await (await client()).searchByText("大阪", { target: "cities" });
     expect(hits.every((h) => h.code.length === 6)).toBe(true);
     expect(hits.some((h) => h.name === "大阪市")).toBe(true);
     expect(hits.some((h) => h.name === "大阪府")).toBe(false);
   });
 
   it("filters by prefecture with unpadded code", async () => {
-    const hits = await (await client()).search("中央", {
+    const hits = await (await client()).searchByText("中央", {
       prefecture: "1",
       target: "cities",
     });
@@ -182,53 +213,112 @@ describe("search", () => {
 
   it("returns empty array when nothing matches", async () => {
     const c = await client();
-    expect(await c.search("存在しない自治体名xyz")).toEqual([]);
-    expect(await c.search("区", { prefecture: "99" })).toEqual([]);
+    expect(await c.searchByText("存在しない自治体名xyz")).toEqual([]);
+    expect(await c.searchByText("区", { prefecture: "99" })).toEqual([]);
+  });
+
+  it("matches halfwidth kana, fullwidth kana, and hiragana", async () => {
+    const c = await client();
+    const half = await c.searchByText("ﾁﾖﾀﾞ", {
+      prefecture: "13",
+      target: "cities",
+    });
+    const full = await c.searchByText("チヨダ", {
+      prefecture: "13",
+      target: "cities",
+    });
+    const hira = await c.searchByText("ちよだ", {
+      prefecture: "13",
+      target: "cities",
+    });
+
+    expect(half.some((h) => h.code === "131016")).toBe(true);
+    expect(full.some((h) => h.code === "131016")).toBe(true);
+    expect(hira.some((h) => h.code === "131016")).toBe(true);
+  });
+
+  it("respects matchField name vs nameKana", async () => {
+    const c = await client();
+    const byName = await c.searchByText("千代田", {
+      prefecture: "13",
+      target: "cities",
+      matchField: "name",
+    });
+    const kanaOnNameOnly = await c.searchByText("ﾁﾖﾀﾞ", {
+      prefecture: "13",
+      target: "cities",
+      matchField: "name",
+    });
+    const byKana = await c.searchByText("ﾁﾖﾀﾞ", {
+      prefecture: "13",
+      target: "cities",
+      matchField: "nameKana",
+    });
+
+    expect(byName.some((h) => h.code === "131016")).toBe(true);
+    expect(kanaOnNameOnly).toEqual([]);
+    expect(byKana.some((h) => h.code === "131016")).toBe(true);
   });
 });
 
-describe("getCodeByName", () => {
+describe("getLocalGovCodeByName", () => {
   it("returns code for a unique exact match", async () => {
     const c = await client();
-    expect(await c.getCodeByName("千代田区")).toBe("131016");
-    expect(await c.getCodeByName("札幌市中央区")).toBe("011011");
-    expect(await c.getCodeByName("東京都", { target: "prefectures" })).toBe(
+    expect(await c.getLocalGovCodeByName("千代田区")).toBe("131016");
+    expect(await c.getLocalGovCodeByName("札幌市中央区")).toBe("011011");
+    expect(await c.getLocalGovCodeByName("東京都", { target: "prefectures" })).toBe(
       "13",
     );
   });
 
   it("returns null when multiple exact hits exist", async () => {
     const c = await client();
-    expect(await c.getCodeByName("府中市")).toBeNull();
-    expect(await c.getCodeByName("伊達市")).toBeNull();
+    expect(await c.getLocalGovCodeByName("府中市")).toBeNull();
+    expect(await c.getLocalGovCodeByName("伊達市")).toBeNull();
   });
 
   it("returns code when prefecture filter makes the match unique", async () => {
     const c = await client();
-    expect(await c.getCodeByName("府中市", { prefecture: "13" })).toBe(
+    expect(await c.getLocalGovCodeByName("府中市", { prefecture: "13" })).toBe(
       "132063",
     );
-    expect(await c.getCodeByName("府中市", { prefecture: "34" })).toBe(
+    expect(await c.getLocalGovCodeByName("府中市", { prefecture: "34" })).toBe(
       "342084",
     );
   });
 
   it("returns null for partial names (exact match only)", async () => {
     const c = await client();
-    expect(await c.getCodeByName("千代田")).toBeNull();
-    expect(await c.getCodeByName("東京")).toBeNull();
+    expect(await c.getLocalGovCodeByName("千代田")).toBeNull();
+    expect(await c.getLocalGovCodeByName("東京")).toBeNull();
   });
 
   it("returns null when not found", async () => {
     const c = await client();
-    expect(await c.getCodeByName("存在しない市")).toBeNull();
+    expect(await c.getLocalGovCodeByName("存在しない市")).toBeNull();
     expect(
-      await c.getCodeByName("千代田区", { prefecture: "01" }),
+      await c.getLocalGovCodeByName("千代田区", { prefecture: "01" }),
     ).toBeNull();
+  });
+
+  it("resolves unique exact kana match", async () => {
+    const c = await client();
+    expect(
+      await c.getLocalGovCodeByName("ﾁﾖﾀﾞｸ", {
+        prefecture: "13",
+        target: "cities",
+      }),
+    ).toBe("131016");
+    expect(
+      await c.getLocalGovCodeByName("ちよだく", {
+        prefecture: "13",
+        target: "cities",
+      }),
+    ).toBe("131016");
   });
 });
 
-describe("createLocalGov url + cache + lazy load", () => {
+describe("createLocalGovClient url + cache + lazy load", () => {
   const store = new Map<string, string>();
 
   afterEach(() => {
@@ -279,7 +369,7 @@ describe("createLocalGov url + cache + lazy load", () => {
     const files = fileMap();
     const fetchMock = stubFetch(files);
 
-    const c = await createLocalGov({ url: indexUrl });
+    const c = await createLocalGovClient({ url: indexUrl });
     expect(c.listPrefectures()).toHaveLength(47);
     // index + prefectures only
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -332,10 +422,10 @@ describe("createLocalGov url + cache + lazy load", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const c = await createLocalGov({ url: indexUrl });
+    const c = await createLocalGovClient({ url: indexUrl });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    const hits = await c.search("中央", { target: "cities" });
+    const hits = await c.searchByText("中央", { target: "cities" });
     expect(hits.some((h) => h.name === "札幌市中央区")).toBe(true);
     expect(hits.some((h) => h.name === "中央区")).toBe(true);
 
@@ -356,14 +446,14 @@ describe("createLocalGov url + cache + lazy load", () => {
     ).toBe(true);
 
     // Second nationwide search reuses memory (no extra fetch)
-    await c.search("中央", { target: "cities" });
+    await c.searchByText("中央", { target: "cities" });
     expect(fetchMock).toHaveBeenCalledTimes(2 + 47);
   });
 
   it("getByCode persists municipality JSON to localStorage", async () => {
     stubLocalStorage();
     const fetchMock = stubFetch(fileMap());
-    const c = await createLocalGov({ url: indexUrl });
+    const c = await createLocalGovClient({ url: indexUrl });
 
     await c.getByCode("131016");
     expect(
@@ -377,9 +467,9 @@ describe("createLocalGov url + cache + lazy load", () => {
   it("prefecture-scoped search persists municipality JSON to localStorage", async () => {
     stubLocalStorage();
     const fetchMock = stubFetch(fileMap());
-    const c = await createLocalGov({ url: indexUrl });
+    const c = await createLocalGovClient({ url: indexUrl });
 
-    await c.search("中央", { prefecture: "01", target: "cities" });
+    await c.searchByText("中央", { prefecture: "01", target: "cities" });
     expect(
       store.has(
         "https://cdn.example.com/jp-local-gov-id-data/0.2.0/prefectures/01.json",
@@ -392,8 +482,8 @@ describe("createLocalGov url + cache + lazy load", () => {
     stubLocalStorage();
     const fetchMock = stubFetch(fileMap());
 
-    const c = await createLocalGov({ url: indexUrl });
-    const hits = await c.search("東京", { target: "prefectures" });
+    const c = await createLocalGovClient({ url: indexUrl });
+    const hits = await c.searchByText("東京", { target: "prefectures" });
     expect(hits).toHaveLength(1);
     expect(hits[0]?.name).toBe("東京都");
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -410,7 +500,7 @@ describe("createLocalGov url + cache + lazy load", () => {
       }),
     );
 
-    await expect(createLocalGov({ url: indexUrl })).rejects.toThrow(/404/);
+    await expect(createLocalGovClient({ url: indexUrl })).rejects.toThrow(/404/);
     expect(store.has(indexUrl)).toBe(false);
   });
 
@@ -428,7 +518,7 @@ describe("createLocalGov url + cache + lazy load", () => {
       }),
     );
 
-    await expect(createLocalGov({ url: indexUrl })).rejects.toBeInstanceOf(
+    await expect(createLocalGovClient({ url: indexUrl })).rejects.toBeInstanceOf(
       LocalGovSchemaError,
     );
   });
@@ -437,22 +527,22 @@ describe("createLocalGov url + cache + lazy load", () => {
     vi.stubGlobal("localStorage", undefined);
     const fetchMock = stubFetch(fileMap());
 
-    const c = await createLocalGov({ url: indexUrl });
+    const c = await createLocalGovClient({ url: indexUrl });
     expect(c.listPrefectures()).toHaveLength(47);
 
-    await createLocalGov({ url: indexUrl });
+    await createLocalGovClient({ url: indexUrl });
     // Each init: index + prefectures
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
-  it("reuses cached index on second createLocalGov", async () => {
+  it("reuses cached index on second createLocalGovClient", async () => {
     stubLocalStorage();
     const fetchMock = stubFetch(fileMap());
 
-    await createLocalGov({ url: indexUrl });
+    await createLocalGovClient({ url: indexUrl });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    await createLocalGov({ url: indexUrl });
+    await createLocalGovClient({ url: indexUrl });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
