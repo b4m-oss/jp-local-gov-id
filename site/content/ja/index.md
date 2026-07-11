@@ -40,3 +40,7 @@ await client.getByCode("131016"); // 千代田区
 |------------|------|
 | `@b4moss/jp-local-gov-id` | JS API（データ非同梱） |
 | `@b4moss/jp-local-gov-id-data` | 分割データ JSON |
+
+## 質問・要望など
+
+[GitHub の Issues](https://github.com/b4m-oss/jp-local-gov-id/issues)からお願いします。（GitHubアカウントが必要です。）

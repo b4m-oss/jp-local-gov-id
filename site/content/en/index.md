@@ -39,3 +39,7 @@ See [Usage](/en/usage) for details.
 |---------|-------------|
 | `@b4moss/jp-local-gov-id` | JS API (data not bundled) |
 | `@b4moss/jp-local-gov-id-data` | Split JSON datasets |
+
+## Questions and requests
+
+Please use [GitHub Issues](https://github.com/b4m-oss/jp-local-gov-id/issues). (A GitHub account is required.)
