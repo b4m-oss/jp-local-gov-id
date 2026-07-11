@@ -125,10 +125,39 @@ describe("listMunicipalitiesByPrefecture", () => {
     expect(byUnpadded).toEqual(byName);
   });
 
-  it("includes designated city body and ward", async () => {
+  it("includes designated city body and ward by default (both)", async () => {
     const munis = await (await client()).listMunicipalitiesByPrefecture("01");
     expect(munis.find((m) => m.code === "011002")?.name).toBe("札幌市");
     expect(munis.find((m) => m.code === "011011")?.name).toBe("札幌市中央区");
+  });
+
+  it("designatedCity city keeps body and excludes wards", async () => {
+    const munis = await (
+      await client()
+    ).listMunicipalitiesByPrefecture("01", { designatedCity: "city" });
+    expect(munis.some((m) => m.name === "札幌市")).toBe(true);
+    expect(munis.some((m) => m.name === "札幌市中央区")).toBe(false);
+    expect(munis.every((m) => !/^.+市.+区$/.test(m.name))).toBe(true);
+  });
+
+  it("designatedCity ward keeps wards and excludes body", async () => {
+    const munis = await (
+      await client()
+    ).listMunicipalitiesByPrefecture("01", { designatedCity: "ward" });
+    expect(munis.some((m) => m.name === "札幌市")).toBe(false);
+    expect(munis.some((m) => m.name === "札幌市中央区")).toBe(true);
+  });
+
+  it("designatedCity modes keep Tokyo special wards", async () => {
+    const c = await client();
+    const city = await c.listMunicipalitiesByPrefecture("13", {
+      designatedCity: "city",
+    });
+    const ward = await c.listMunicipalitiesByPrefecture("13", {
+      designatedCity: "ward",
+    });
+    expect(city.some((m) => m.name === "千代田区")).toBe(true);
+    expect(ward.some((m) => m.name === "千代田区")).toBe(true);
   });
 
   it("returns empty array when prefecture is unknown", async () => {
