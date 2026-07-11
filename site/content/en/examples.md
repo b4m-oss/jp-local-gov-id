@@ -16,6 +16,8 @@ Select a prefecture to load its municipalities into a dropdown. Uses `listPrefec
 ::address-input-demo
 ::
 
+:::collapse-box
+
 ```html
 <label for="prefecture">Prefecture</label>
 <select id="prefecture">
@@ -85,12 +87,16 @@ prefSelect.addEventListener("change", loadMunicipalities);
 modeSelect.addEventListener("change", loadMunicipalities);
 ```
 
+:::
+
 ## Municipality validation
 
 With a prefecture selected, enter a municipality name and check whether it exists. Names that do not match an exact official name show an error (`getLocalGovCodeByName`).
 
 ::municipality-validation-demo
 ::
+
+:::collapse-box
 
 ```html
 <label for="prefecture">Prefecture</label>
@@ -137,3 +143,5 @@ document.querySelector("#validate").addEventListener("click", async () => {
   }
 });
 ```
+
+:::
