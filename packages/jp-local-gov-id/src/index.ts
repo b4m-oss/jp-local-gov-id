@@ -1,5 +1,7 @@
 export type {
   CreateLocalGovOptions,
+  DesignatedCityMode,
+  ListMunicipalitiesOptions,
   LocalGov,
   LocalGovClient,
   LocalGovDataFile,
