@@ -1,8 +1,20 @@
 name: Publish
 
+# IMPORTANT:
+# - Do NOT click "Re-run" on old failed jobs (they keep the old commit SHA).
+# - Prefer "Run workflow" below after merging the latest main.
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Which package to publish
+        required: true
+        type: choice
+        options:
+          - data
+          - api
+          - both
+        default: data
 
 concurrency:
   group: publish-${{ github.ref }}
@@ -21,12 +33,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show publish context
+        run: |
+          echo "event=${{ github.event_name }}"
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          git log -1 --oneline
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
           registry-url: https://registry.npmjs.org
+          # Never cache for release builds
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -37,26 +57,67 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Verify repository.url for provenance
-        run: |
-          expected='https://github.com/b4m-oss/jp-local-gov-id'
-          for pkg in packages/jp-local-gov-id-data packages/jp-local-gov-id; do
-            url=$(node -p "require('./${pkg}/package.json').repository?.url ?? ''")
-            echo "${pkg}: repository.url=${url}"
-            if [ "$url" != "$expected" ]; then
-              echo "::error::${pkg}/package.json repository.url must be exactly ${expected} (got: '${url}')"
-              exit 1
-            fi
-          done
-
       - name: Publish @b4moss/jp-local-gov-id-data
-        working-directory: packages/jp-local-gov-id-data
-        run: npm publish --access public --provenance
+        if: ${{ inputs.package == 'data' || inputs.package == 'both' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          expected='https://github.com/b4m-oss/jp-local-gov-id'
+          bad_shasum='55ed60a962a9b3b52942a4a77b5442fc6677239b'
+          pkg_dir='packages/jp-local-gov-id-data'
+
+          echo '=== package.json BEFORE inject ==='
+          node -p "JSON.stringify(require('./${pkg_dir}/package.json').repository ?? null, null, 2)"
+
+          node scripts/inject-repository.mjs "$pkg_dir"
+
+          echo '=== package.json AFTER inject ==='
+          node -p "JSON.stringify(require('./${pkg_dir}/package.json').repository, null, 2)"
+
+          cd "$pkg_dir"
+          tgz=$(npm pack --pack-destination . | tail -n1 | tr -d '\r')
+          echo "packed=${tgz}"
+          shasum_value=$(shasum -a 1 "$tgz" | awk '{print $1}')
+          echo "shasum=${shasum_value}"
+
+          tar -xOf "$tgz" package/package.json > /tmp/packed-data-package.json
+          url=$(node -p "require('/tmp/packed-data-package.json').repository?.url ?? ''")
+          echo "packed repository.url=${url}"
+          cat /tmp/packed-data-package.json
+
+          if [ "$url" != "$expected" ]; then
+            echo "::error::Packed repository.url must be ${expected} (got '${url}')"
+            exit 1
+          fi
+          if [ "$shasum_value" = "$bad_shasum" ]; then
+            echo "::error::Packed tarball matches known-bad shasum without repository field"
+            exit 1
+          fi
+
+          npm publish "$tgz" --access public --provenance
 
       - name: Publish @b4moss/jp-local-gov-id
-        working-directory: packages/jp-local-gov-id
-        run: npm publish --access public --provenance
+        if: ${{ inputs.package == 'api' || inputs.package == 'both' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          expected='https://github.com/b4m-oss/jp-local-gov-id'
+          pkg_dir='packages/jp-local-gov-id'
+
+          node scripts/inject-repository.mjs "$pkg_dir"
+          cd "$pkg_dir"
+          tgz=$(npm pack --pack-destination . | tail -n1 | tr -d '\r')
+          echo "packed=${tgz}"
+
+          tar -xOf "$tgz" package/package.json > /tmp/packed-api-package.json
+          url=$(node -p "require('/tmp/packed-api-package.json').repository?.url ?? ''")
+          echo "packed repository.url=${url}"
+
+          if [ "$url" != "$expected" ]; then
+            echo "::error::Packed repository.url must be ${expected} (got '${url}')"
+            exit 1
+          fi
+
+          npm publish "$tgz" --access public --provenance
