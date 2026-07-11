@@ -13,8 +13,14 @@ Overview of the client returned by `createLocalGovClient`.
 |--------|-------------|
 | `data` | npm dataset (or equivalent object) |
 | `url` | Versioned URL to `index.json` |
+| `cache` | `url` mode only. Enable/disable localStorage cache (default: `true`) |
+| `cacheTtlMs` | `url` mode only. Cache TTL in ms (default: 1 year) |
 
-Exactly one is required.
+Exactly one of `data` or `url` is required.
+
+## `isValidMunicipalityCode(code)`
+
+Returns `true` when the code is 6 digits with a valid check digit. Useful to reject invalid codes before fetching.
 
 ## `LocalGov`
 
@@ -58,5 +64,12 @@ String search normalizes hiragana / fullwidth kana to halfwidth kana.
 
 ## Caching in `url` mode
 
-- Fetched files are cached in localStorage (key = URL, TTL 1 year)
+- Fetched files are cached in localStorage (key = URL, default TTL 1 year)
+- Set `cache: false` to disable read/write; set `cacheTtlMs` to change TTL
 - Municipality JSON loaded by **nationwide** string search stays in memory only
+
+## Code validation
+
+- 6-digit municipality codes are validated with a check digit
+- Invalid codes make `getMunicipalityByCode` / `getByCode` return `null` without fetching
+- Use `isValidMunicipalityCode` to check beforehand
