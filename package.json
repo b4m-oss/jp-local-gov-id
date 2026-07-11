@@ -5,11 +5,14 @@
   "description": "jp-local-gov-id monorepo (npm workspaces)",
   "workspaces": [
     "packages/*",
-    "scripts"
+    "scripts",
+    "site"
   ],
   "scripts": {
     "dev": "npm run dev -w @b4moss/jp-local-gov-id",
+    "dev:site": "npm run build -w @b4moss/jp-local-gov-id && npm run dev -w jp-local-gov-id-site",
     "build": "npm run build -w @b4moss/jp-local-gov-id",
+    "build:site": "npm run build -w @b4moss/jp-local-gov-id && npm run generate -w jp-local-gov-id-site",
     "test": "npm run test -w @b4moss/jp-local-gov-id",
     "generate": "npm run generate -w jp-local-gov-id-scripts",
     "check-publish": "node scripts/check-publish.mjs",

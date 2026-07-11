@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "home": "Home",
+    "gettingStarted": "Getting started",
+    "installation": "Installation",
+    "usage": "Usage",
+    "api": "API",
+    "examples": "Examples",
+    "playground": "Playground",
+    "contribute": "Contribute",
+    "language": "Language",
+    "menu": "Menu",
+    "github": "GitHub",
+    "prev": "Previous",
+    "next": "Next",
+    "pager": "Page navigation",
+    "versions": "Package versions"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "playground": {
+    "title": "Playground",
+    "description": "Try code lookup and text search in the browser (official dataset bundled).",
+    "codeLookup": "Code lookup",
+    "codeLookupHint": "Prefecture: 2 digits, municipality: 6 digits (e.g. 13 / 131016)",
+    "search": "Text search",
+    "searchHint": "Partial match on name, kana, or hiragana",
+    "query": "Query",
+    "prefecture": "Prefecture (optional)",
+    "prefectureAll": "Nationwide",
+    "target": "Target",
+    "targetAll": "All",
+    "targetPrefectures": "Prefectures",
+    "targetCities": "Municipalities",
+    "run": "Run",
+    "result": "Result",
+    "empty": "No results",
+    "loading": "Initializing…",
+    "error": "Error"
+  },
+  "codeLookupDemo": {
+    "label": "Try a code",
+    "placeholder": "131016",
+    "run": "Resolve",
+    "empty": "Not found"
+  }
+}
